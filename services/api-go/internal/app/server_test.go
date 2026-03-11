@@ -42,3 +42,56 @@ func TestIngestAuctionsRequiresToken(t *testing.T) {
 		t.Fatalf("ServeHTTP() code = %d", rec.Code)
 	}
 }
+
+func TestCalendarFeedRequiresToken(t *testing.T) {
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/auctions/calendar.ics", nil)
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
+func TestCreateKeywordSubscriptionValidatesKeyword(t *testing.T) {
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/keyword-subscriptions", bytes.NewBufferString(`{"keyword":" "}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
+func TestIngestAuctionsValidatesChecksum(t *testing.T) {
+	t.Setenv("INTERNAL_INGEST_TOKEN", "secret")
+
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/internal/ingest/auctions", bytes.NewBufferString(`{"source":"fixtures","checksum":"abc","rows":[{"announcement_no":"TP-001","office":"臺北關","title":"相機","category":"3C","closing_at":"2026-03-16T14:00:00+08:00","original_link":"https://example.com","warnings":["現狀交付"]}]}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Ingest-Token", "secret")
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}

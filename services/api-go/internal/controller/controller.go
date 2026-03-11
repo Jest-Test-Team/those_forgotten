@@ -58,6 +58,10 @@ func (ctl *Controller) GetAuctionHistory(c echo.Context) error {
 }
 
 func (ctl *Controller) GetCalendarFeed(c echo.Context) error {
+	if !ctl.service.ValidateCalendarToken(c.QueryParam("token")) {
+		return c.JSON(http.StatusUnauthorized, map[string]any{"error": "calendar token required"})
+	}
+
 	return c.Blob(http.StatusOK, "text/calendar", []byte(ctl.service.CalendarFeed()))
 }
 
@@ -65,6 +69,9 @@ func (ctl *Controller) CreateKeywordSubscription(c echo.Context) error {
 	input := new(dto.KeywordSubscriptionInput)
 	if err := c.Bind(input); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid payload"})
+	}
+	if !ctl.service.ValidateKeyword(input.Keyword) {
+		return c.JSON(http.StatusBadRequest, map[string]any{"error": "keyword required"})
 	}
 
 	return c.JSON(http.StatusCreated, map[string]any{"data": ctl.service.CreateKeywordSubscription(input.Keyword)})
@@ -79,6 +86,9 @@ func (ctl *Controller) CreateWebPushSubscription(c echo.Context) error {
 	input := new(dto.WebPushSubscriptionInput)
 	if err := c.Bind(input); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid payload"})
+	}
+	if !ctl.service.ValidateWebPush(input) {
+		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid web push subscription"})
 	}
 
 	return c.JSON(http.StatusCreated, map[string]any{"data": ctl.service.CreateWebPushSubscription(input)})
@@ -114,6 +124,9 @@ func (ctl *Controller) CreateCommunityPost(c echo.Context) error {
 	if err := c.Bind(input); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid payload"})
 	}
+	if !ctl.service.ValidateCommunityPost(input) {
+		return c.JSON(http.StatusBadRequest, map[string]any{"error": "title, body, and office are required"})
+	}
 
 	return c.JSON(http.StatusCreated, map[string]any{"data": ctl.service.CreateCommunityPost(input)})
 }
@@ -122,6 +135,9 @@ func (ctl *Controller) ReportCommunityPost(c echo.Context) error {
 	input := new(dto.ReportInput)
 	if err := c.Bind(input); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid payload"})
+	}
+	if !ctl.service.ValidateReport(input) {
+		return c.JSON(http.StatusBadRequest, map[string]any{"error": "reason required"})
 	}
 
 	return c.JSON(http.StatusCreated, map[string]any{"data": ctl.service.ReportCommunityPost(c.Param("id"), input)})
@@ -136,6 +152,9 @@ func (ctl *Controller) CreateAdvisorLead(c echo.Context) error {
 	if err := c.Bind(input); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid payload"})
 	}
+	if !ctl.service.ValidateAdvisorLead(input) {
+		return c.JSON(http.StatusBadRequest, map[string]any{"error": "advisor lead is incomplete"})
+	}
 
 	return c.JSON(http.StatusCreated, map[string]any{"data": ctl.service.CreateAdvisorLead(input)})
 }
@@ -148,6 +167,9 @@ func (ctl *Controller) IngestAuctions(c echo.Context) error {
 	input := new(dto.IngestPayload)
 	if err := c.Bind(input); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid payload"})
+	}
+	if !ctl.service.ValidateIngestPayload(input) {
+		return c.JSON(http.StatusBadRequest, map[string]any{"error": "ingest payload failed checksum validation"})
 	}
 
 	return c.JSON(http.StatusAccepted, map[string]any{"data": ctl.service.IngestAuctions(input)})

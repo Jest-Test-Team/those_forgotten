@@ -11,7 +11,7 @@ from crawler.models import NormalizedAuction
 def build_payload(source: str, rows: list[NormalizedAuction]) -> dict[str, object]:
     serialized_rows = [row.to_dict() for row in rows]
     checksum = hashlib.sha256(
-        json.dumps(serialized_rows, ensure_ascii=False, sort_keys=True).encode("utf-8")
+        json.dumps(serialized_rows, ensure_ascii=False).encode("utf-8")
     ).hexdigest()
     return {
         "source": source,
