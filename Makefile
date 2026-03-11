@@ -1,6 +1,6 @@
 SHELL := /bin/zsh
 
-.PHONY: bootstrap dev lint test typecheck api-test crawler-test web-test sync-contracts stack-up stack-down api-dev crawler-dev crawler-post-fixtures
+.PHONY: bootstrap dev lint test typecheck api-test crawler-test web-test sync-contracts stack-build stack-up stack-web stack-logs stack-down api-dev crawler-dev crawler-post-fixtures
 
 bootstrap:
 	corepack pnpm install
@@ -39,6 +39,15 @@ sync-contracts:
 
 stack-up:
 	docker compose up -d postgres redis api
+
+stack-build:
+	docker compose build
+
+stack-web:
+	docker compose up -d web crawler
+
+stack-logs:
+	docker compose logs -f --tail=100 api web crawler
 
 stack-down:
 	docker compose down
