@@ -17,5 +17,31 @@ services:
     ports:
       - "6379:6379"
 
+  api:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.api
+    environment:
+      PORT: "8080"
+      WEB_ORIGIN: http://localhost:3000
+      INTERNAL_INGEST_TOKEN: demo-token
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+
+  crawler:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.crawler
+    environment:
+      POST_TO_API: "true"
+      FIXTURES: fixtures
+      INGEST_ENDPOINT: http://api:8080/internal/ingest/auctions
+      INTERNAL_INGEST_TOKEN: demo-token
+    depends_on:
+      - api
+
 volumes:
   postgres-data:

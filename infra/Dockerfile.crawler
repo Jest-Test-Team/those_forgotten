@@ -5,7 +5,9 @@ COPY services/crawler/pyproject.toml ./
 COPY services/crawler/README.md ./
 COPY services/crawler/crawler ./crawler
 COPY services/crawler/fixtures ./fixtures
+COPY services/crawler/scripts ./scripts
 
 RUN pip install --no-cache-dir -e .
+RUN chmod +x /app/scripts/run-crawler.sh
 
-CMD ["python", "-m", "crawler.cli", "--fixtures", "fixtures"]
+CMD ["/app/scripts/run-crawler.sh"]

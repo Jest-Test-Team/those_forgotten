@@ -25,6 +25,16 @@ cd services/api-go && go run ./cmd/api
 cd services/crawler && source .venv/bin/activate && python -m crawler.cli --fixtures fixtures
 ```
 
+## Local Stack
+
+```bash
+make stack-up
+make api-dev
+make crawler-dev
+make crawler-post-fixtures
+make stack-down
+```
+
 ## Contracts
 
 ```bash

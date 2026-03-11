@@ -1,6 +1,6 @@
 SHELL := /bin/zsh
 
-.PHONY: bootstrap dev lint test typecheck api-test crawler-test web-test sync-contracts
+.PHONY: bootstrap dev lint test typecheck api-test crawler-test web-test sync-contracts stack-up stack-down api-dev crawler-dev crawler-post-fixtures
 
 bootstrap:
 	corepack pnpm install
@@ -36,3 +36,18 @@ web-test:
 
 sync-contracts:
 	corepack pnpm --filter @customs/contracts build
+
+stack-up:
+	docker compose up -d postgres redis api
+
+stack-down:
+	docker compose down
+
+api-dev:
+	cd services/api-go && go run ./cmd/api
+
+crawler-dev:
+	cd services/crawler && . .venv/bin/activate && python -m crawler.cli --fixtures fixtures
+
+crawler-post-fixtures:
+	cd services/crawler && . .venv/bin/activate && python -m crawler.cli --fixtures fixtures --post --endpoint $${INGEST_ENDPOINT:-http://localhost:8080/internal/ingest/auctions} --token $${INTERNAL_INGEST_TOKEN:-demo-token}
