@@ -59,7 +59,9 @@ export default async function AdminPage() {
             <div className="rounded-[1.5rem] bg-white/65 p-4">
               <p className="text-sm text-[color:var(--muted)]">Current Admin</p>
               <p className="mt-2 text-sm font-semibold">{auth.email ?? "unknown"}</p>
-              <p className="mt-1 text-xs text-[color:var(--muted)]">{auth.isAdmin ? "allowlist granted" : "allowlist missing"}</p>
+              <p className="mt-1 text-xs text-[color:var(--muted)]">
+                {auth.role} via {auth.source}
+              </p>
             </div>
           </div>
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
