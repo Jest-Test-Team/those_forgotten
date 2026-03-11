@@ -1,0 +1,10 @@
+{
+  "name": "海關標售雷達",
+  "short_name": "標售雷達",
+  "lang": "zh-TW",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5efe2",
+  "theme_color": "#0a5c4a",
+  "description": "海關標售公告整合、推播提醒與風險教學平台"
+}

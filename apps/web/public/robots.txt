@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /auctions
+Allow: /knowledge
+Allow: /community
+Disallow: /member
+Disallow: /admin
+Sitemap: https://customs-auction.local/sitemap.xml

@@ -1,0 +1,39 @@
+import { Shell } from "@/components/shell";
+import { posts } from "@/lib/site-data";
+
+export const metadata = {
+  title: "看貨心得",
+};
+
+export default function CommunityPage() {
+  return (
+    <Shell>
+      <section className="glass rounded-[2rem] p-8">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="label">Community</p>
+            <h1 className="mt-4 font-display text-4xl font-semibold">看貨心得與風險分享</h1>
+          </div>
+          <div className="rounded-[1.5rem] bg-[#17342d] px-4 py-3 text-sm text-white">
+            發文資格：Email 已驗證會員
+          </div>
+        </div>
+        <div className="mt-8 space-y-4">
+          {posts.map((post) => (
+            <article key={post.id} className="rounded-[1.5rem] border border-black/8 bg-white/60 p-6">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm text-[color:var(--muted)]">{post.office}</p>
+                  <h2 className="mt-2 text-2xl font-semibold">{post.title}</h2>
+                </div>
+                <span className="rounded-full border border-black/10 px-3 py-1 text-sm">{post.author}</span>
+              </div>
+              <p className="mt-4 text-base leading-8 text-[color:var(--muted)]">{post.body}</p>
+              <div className="mt-4 text-sm text-[color:var(--warning)]">社群採先發後審，任何貼文都可檢舉並由管理員下架。</div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </Shell>
+  );
+}

@@ -1,65 +1,124 @@
-import Image from "next/image";
+import Link from "next/link";
+import { RiskPanel } from "@/components/risk-panel";
+import { Shell } from "@/components/shell";
+import { TaxCalculator } from "@/components/tax-calculator";
+import { advisors, auctions, courses, historicalCoverageStart, posts } from "@/lib/site-data";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <Shell>
+      <section className="hero-grid">
+        <div className="glass fade-up rounded-[2rem] p-8">
+          <p className="label">Customs Auction Platform</p>
+          <h1 className="mt-4 max-w-3xl font-display text-5xl font-semibold leading-tight tracking-tight">
+            一個把海關標售公告、出價教學、推播提醒與顧問媒合同步收進來的 Web PWA。
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-[color:var(--muted)]">
+            v1 聚焦四大海關公告整合、關鍵字推播、歷史行情、稅費試算、社群看貨心得與代標需求表單。
           </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link className="rounded-full bg-[color:var(--accent)] px-5 py-3 font-medium text-white" href="/auctions">
+              查看最新標售
+            </Link>
+            <Link className="rounded-full border border-black/10 px-5 py-3 font-medium" href="/member">
+              設定推播與日曆
+            </Link>
+          </div>
+          <div className="mt-10 grid gap-4 sm:grid-cols-3">
+            <div className="rounded-[1.5rem] bg-white/65 p-4">
+              <p className="text-3xl font-semibold">4</p>
+              <p className="mt-1 text-sm text-[color:var(--muted)]">關別資料源接入</p>
+            </div>
+            <div className="rounded-[1.5rem] bg-white/65 p-4">
+              <p className="text-3xl font-semibold">30 分</p>
+              <p className="mt-1 text-sm text-[color:var(--muted)]">預設輪詢間隔</p>
+            </div>
+            <div className="rounded-[1.5rem] bg-white/65 p-4">
+              <p className="text-3xl font-semibold">{historicalCoverageStart}</p>
+              <p className="mt-1 text-sm text-[color:var(--muted)]">歷史成交資料起算日</p>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <RiskPanel />
+      </section>
+
+      <section className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="glass rounded-[2rem] p-6">
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="label">最新標售</p>
+              <h2 className="mt-3 font-display text-3xl font-semibold">高價值批次與管制品項</h2>
+            </div>
+            <Link className="text-sm text-[color:var(--accent)]" href="/auctions">
+              進入完整清單
+            </Link>
+          </div>
+          <div className="mt-6 space-y-4">
+            {auctions.map((auction) => (
+              <Link
+                key={auction.id}
+                href={`/auctions/${auction.id}`}
+                className="block rounded-[1.5rem] border border-black/8 bg-white/60 p-5 transition hover:-translate-y-0.5"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm text-[color:var(--muted)]">{auction.office} / {auction.category}</p>
+                    <h3 className="mt-1 text-xl font-semibold">{auction.title}</h3>
+                  </div>
+                  <span className="rounded-full bg-[#f0dfc8] px-3 py-1 text-sm text-[#6d4c1a]">{auction.priceBand}</span>
+                </div>
+                <p className="mt-3 text-sm leading-7 text-[color:var(--muted)]">{auction.summary}</p>
+              </Link>
+            ))}
+          </div>
         </div>
-      </main>
-    </div>
+        <TaxCalculator />
+      </section>
+
+      <section className="mt-6 grid gap-6 md:grid-cols-2">
+        <div className="glass rounded-[2rem] p-6">
+          <p className="label">看貨心得</p>
+          <div className="mt-4 space-y-4">
+            {posts.map((post) => (
+              <div key={post.id} className="rounded-[1.5rem] border border-black/8 bg-white/60 p-5">
+                <p className="text-sm text-[color:var(--muted)]">{post.office} / {post.author}</p>
+                <h3 className="mt-2 text-xl font-semibold">{post.title}</h3>
+                <p className="mt-2 text-sm leading-7 text-[color:var(--muted)]">{post.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="grid gap-6">
+          <div className="glass rounded-[2rem] p-6">
+            <p className="label">專業顧問</p>
+            <div className="mt-4 space-y-4">
+              {advisors.map((advisor) => (
+                <div key={advisor.id} className="rounded-[1.5rem] border border-black/8 bg-white/60 p-5">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-xl font-semibold">{advisor.name}</h3>
+                      <p className="text-sm text-[color:var(--muted)]">{advisor.specialty}</p>
+                    </div>
+                    <span className="rounded-full bg-[#163a30] px-3 py-1 text-sm text-white">{advisor.responseTime}</span>
+                  </div>
+                  <p className="mt-3 text-sm leading-7 text-[color:var(--muted)]">{advisor.note}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="glass rounded-[2rem] p-6">
+            <p className="label">付費內容</p>
+            <div className="mt-4 space-y-4">
+              {courses.map((course) => (
+                <div key={course.id} className="rounded-[1.5rem] border border-black/8 bg-white/60 p-5">
+                  <h3 className="text-lg font-semibold">{course.title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-[color:var(--muted)]">{course.summary}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    </Shell>
   );
 }
