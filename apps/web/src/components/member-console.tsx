@@ -1,17 +1,18 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { createKeywordSubscription, createWebPushSubscription } from "@/lib/browser-api";
+import { createKeywordSubscription, createWebPushSubscription, deleteKeywordSubscription } from "@/lib/browser-api";
+import type { KeywordSubscription } from "@/lib/api";
 
 const keywordOptions = ["相機", "進口車", "名牌包", "原木"];
 
 type Props = {
-  initialKeywords: string[];
+  initialKeywords: KeywordSubscription[];
   sourceLabel: string;
 };
 
 export function MemberConsole({ initialKeywords, sourceLabel }: Props) {
-  const [keywords, setKeywords] = useState<string[]>(initialKeywords);
+  const [keywords, setKeywords] = useState<KeywordSubscription[]>(initialKeywords);
   const [draft, setDraft] = useState("");
   const [pushEnabled, setPushEnabled] = useState(false);
   const [message, setMessage] = useState("");
@@ -24,7 +25,7 @@ export function MemberConsole({ initialKeywords, sourceLabel }: Props) {
 
   function addKeyword() {
     const value = draft.trim();
-    if (!value || keywords.includes(value)) {
+    if (!value || keywords.some((item) => item.keyword === value)) {
       return;
     }
 
@@ -33,16 +34,32 @@ export function MemberConsole({ initialKeywords, sourceLabel }: Props) {
       setMessage(result.message);
 
       if (result.ok) {
-        setKeywords((current) => [...current, value]);
+        setKeywords((current) => [...current, { id: `local-${value}`, keyword: value }]);
         setDraft("");
       }
     });
   }
 
   function toggleKeyword(keyword: string) {
-    setKeywords((current) =>
-      current.includes(keyword) ? current.filter((item) => item !== keyword) : [...current, keyword],
-    );
+    setKeywords((current) => {
+      const hasKeyword = current.some((item) => item.keyword === keyword);
+      if (hasKeyword) {
+        return current.filter((item) => item.keyword !== keyword);
+      }
+
+      return [...current, { id: `preset-${keyword}`, keyword }];
+    });
+  }
+
+  function removeKeyword(subscription: KeywordSubscription) {
+    startTransition(async () => {
+      const result = await deleteKeywordSubscription(subscription.id, subscription.keyword);
+      setMessage(result.message);
+
+      if (result.ok) {
+        setKeywords((current) => current.filter((item) => item.id !== subscription.id));
+      }
+    });
   }
 
   function togglePush() {
@@ -74,7 +91,7 @@ export function MemberConsole({ initialKeywords, sourceLabel }: Props) {
         <p className="label">推播訂閱</p>
         <div className="mt-4 flex flex-wrap gap-3">
           {keywordOptions.map((keyword) => {
-            const active = keywords.includes(keyword);
+            const active = keywords.some((item) => item.keyword === keyword);
             return (
               <button
                 key={keyword}
@@ -106,8 +123,20 @@ export function MemberConsole({ initialKeywords, sourceLabel }: Props) {
           </button>
         </div>
         <p className="mt-4 text-sm text-[color:var(--muted)]">
-          目前訂閱：{keywords.join("、")}。付費會員匹配新案時即時接收 Web Push。
+          目前訂閱：{keywords.map((item) => item.keyword).join("、")}。付費會員匹配新案時即時接收 Web Push。
         </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {keywords.map((subscription) => (
+            <button
+              key={subscription.id}
+              type="button"
+              onClick={() => removeKeyword(subscription)}
+              className="rounded-full border border-black/10 bg-white px-3 py-1 text-sm"
+            >
+              移除 {subscription.keyword}
+            </button>
+          ))}
+        </div>
         <p className="mt-2 text-xs text-[color:var(--muted)]">訂閱資料來源：{sourceLabel}</p>
         {message ? <p className="mt-3 text-sm text-[color:var(--accent)]">{message}</p> : null}
       </div>

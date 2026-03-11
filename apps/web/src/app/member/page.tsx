@@ -44,7 +44,7 @@ export default async function MemberPage() {
         </section>
         <section className="grid gap-6">
           <MemberConsole
-            initialKeywords={subscriptions.map((subscription) => subscription.keyword)}
+            initialKeywords={subscriptions}
             sourceLabel={subscriptionSource === "api" ? "API" : "Seed"}
           />
           <div className="glass rounded-[2rem] p-6">

@@ -37,8 +37,38 @@ async function postJson(path: string, payload: unknown, fallbackMessage: string)
   }
 }
 
+async function deleteRequest(path: string, fallbackMessage: string): Promise<MutationResult> {
+  try {
+    const response = await fetch(`${getApiBaseUrl()}${path}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as { error?: string } | null;
+      return {
+        ok: false,
+        message: body?.error ?? "請求失敗",
+      };
+    }
+
+    return {
+      ok: true,
+      message: fallbackMessage,
+    };
+  } catch {
+    return {
+      ok: true,
+      message: `${fallbackMessage}（目前使用 fallback 流程，待 API 上線後改為真實送出）`,
+    };
+  }
+}
+
 export function createKeywordSubscription(keyword: string) {
   return postJson("/v1/keyword-subscriptions", { keyword }, `關鍵字「${keyword}」已加入訂閱`);
+}
+
+export function deleteKeywordSubscription(id: string, keyword: string) {
+  return deleteRequest(`/v1/keyword-subscriptions/${id}`, `關鍵字「${keyword}」已移除`);
 }
 
 export function createCommunityPost(input: { title: string; body: string; office: string }) {
