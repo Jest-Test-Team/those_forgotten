@@ -34,7 +34,7 @@ export default async function AdminPage() {
         <section className="glass rounded-[2rem] p-8">
           <p className="label">Admin Backoffice</p>
           <h1 className="mt-4 font-display text-4xl font-semibold">營運與審核總覽</h1>
-          <div className="mt-6 grid gap-4 md:grid-cols-5">
+          <div className="mt-6 grid gap-4 md:grid-cols-6">
             <div className="rounded-[1.5rem] bg-white/65 p-4">
               <p className="text-sm text-[color:var(--muted)]">Live Auctions</p>
               <p className="mt-2 text-3xl font-semibold">{dashboard.liveAuctionCount}</p>
@@ -55,6 +55,11 @@ export default async function AdminPage() {
               <p className="text-sm text-[color:var(--muted)]">API Repository</p>
               <p className="mt-2 text-3xl font-semibold">{dashboard.backendHealth.repository}</p>
               <p className="mt-1 text-xs text-[color:var(--muted)]">{dashboard.backendHealth.status}</p>
+            </div>
+            <div className="rounded-[1.5rem] bg-white/65 p-4">
+              <p className="text-sm text-[color:var(--muted)]">Current Admin</p>
+              <p className="mt-2 text-sm font-semibold">{auth.email ?? "unknown"}</p>
+              <p className="mt-1 text-xs text-[color:var(--muted)]">{auth.isAdmin ? "allowlist granted" : "allowlist missing"}</p>
             </div>
           </div>
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
