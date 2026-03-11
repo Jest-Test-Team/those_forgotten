@@ -1,0 +1,208 @@
+package repository
+
+import (
+	"fmt"
+	"sync"
+	"time"
+
+	"github.com/dennislee928/those_forgotten/services/api-go/internal/dto"
+	"github.com/dennislee928/those_forgotten/services/api-go/internal/model"
+)
+
+type Repository interface {
+	ListAuctions() []model.AuctionLot
+	GetAuction(id string) (model.AuctionLot, bool)
+	GetAuctionHistory(id string) []model.AuctionResult
+	CreateKeywordSubscription(keyword string) model.KeywordSubscription
+	DeleteKeywordSubscription(id string)
+	CreateWebPushSubscription(input *dto.WebPushSubscriptionInput) map[string]any
+	GetKnowledgeArticle(slug string) (model.KnowledgeArticle, bool)
+	ListCourses() []model.Course
+	ListCommunityPosts() []model.CommunityPost
+	CreateCommunityPost(input *dto.CommunityPostInput) model.CommunityPost
+	ReportCommunityPost(postID string, input *dto.ReportInput) model.CommunityReport
+	ListAdvisors() []model.AdvisorProfile
+	CreateAdvisorLead(input *dto.AdvisorLeadInput) model.AdvisorLead
+	IngestAuctions(input *dto.IngestPayload) map[string]any
+}
+
+type MemoryRepository struct {
+	mu          sync.Mutex
+	auctions    []model.AuctionLot
+	history     map[string][]model.AuctionResult
+	articles    map[string]model.KnowledgeArticle
+	courses     []model.Course
+	posts       []model.CommunityPost
+	advisors    []model.AdvisorProfile
+	subs        []model.KeywordSubscription
+	webPush     []map[string]any
+	reports     []model.CommunityReport
+	advisorLead []model.AdvisorLead
+}
+
+func NewMemoryRepository() *MemoryRepository {
+	return &MemoryRepository{
+		auctions: []model.AuctionLot{
+			{
+				ID:            "lot-camera-001",
+				Title:         "沒入數位相機與鏡頭一批",
+				CustomsOffice: "臺北關",
+				ClosingAt:     time.Now().Add(72 * time.Hour).Format(time.RFC3339),
+				Category:      "3C",
+				Disclaimers:   []string{"現狀交付", "不負瑕疵擔保", "得標後需自行負擔相關稅費"},
+			},
+		},
+		history: map[string][]model.AuctionResult{
+			"lot-camera-001": {
+				{ID: "result-001", FinalPrice: 58000, RecordedAt: time.Now().Add(-24 * time.Hour).Format(time.RFC3339)},
+			},
+		},
+		articles: map[string]model.KnowledgeArticle{
+			"bid-form-guide": {
+				Slug:    "bid-form-guide",
+				Title:   "新手指南：標單怎麼填",
+				Summary: "示範如何填寫通信投標標單與押標金流程。",
+			},
+		},
+		courses: []model.Course{
+			{ID: "course-import-cars", Title: "進口車標售實務", Description: "從看車、驗車到領車的完整操作。"},
+		},
+		posts: []model.CommunityPost{
+			{ID: "post-001", Title: "臺北關相機批次看貨紀錄", Body: "鏡頭外觀有明顯刮痕，建議實地複查。", Images: []string{}, Office: "臺北關", Author: "系統示例", Visible: true},
+		},
+		advisors: []model.AdvisorProfile{
+			{ID: "advisor-001", Name: "王顧問", Specialty: "進口車標售", Description: "協助驗車與相關文件流程。"},
+		},
+	}
+}
+
+func (m *MemoryRepository) ListAuctions() []model.AuctionLot {
+	return m.auctions
+}
+
+func (m *MemoryRepository) GetAuction(id string) (model.AuctionLot, bool) {
+	for _, auction := range m.auctions {
+		if auction.ID == id {
+			return auction, true
+		}
+	}
+
+	return model.AuctionLot{}, false
+}
+
+func (m *MemoryRepository) GetAuctionHistory(id string) []model.AuctionResult {
+	return m.history[id]
+}
+
+func (m *MemoryRepository) CreateKeywordSubscription(keyword string) model.KeywordSubscription {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	sub := model.KeywordSubscription{
+		ID:      fmt.Sprintf("sub-%d", len(m.subs)+1),
+		Keyword: keyword,
+	}
+	m.subs = append(m.subs, sub)
+	return sub
+}
+
+func (m *MemoryRepository) DeleteKeywordSubscription(id string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	filtered := make([]model.KeywordSubscription, 0, len(m.subs))
+	for _, sub := range m.subs {
+		if sub.ID != id {
+			filtered = append(filtered, sub)
+		}
+	}
+	m.subs = filtered
+}
+
+func (m *MemoryRepository) CreateWebPushSubscription(input *dto.WebPushSubscriptionInput) map[string]any {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	record := map[string]any{
+		"id":       fmt.Sprintf("push-%d", len(m.webPush)+1),
+		"endpoint": input.Endpoint,
+		"keys":     input.Keys,
+	}
+	m.webPush = append(m.webPush, record)
+	return record
+}
+
+func (m *MemoryRepository) GetKnowledgeArticle(slug string) (model.KnowledgeArticle, bool) {
+	article, ok := m.articles[slug]
+	return article, ok
+}
+
+func (m *MemoryRepository) ListCourses() []model.Course {
+	return m.courses
+}
+
+func (m *MemoryRepository) ListCommunityPosts() []model.CommunityPost {
+	return m.posts
+}
+
+func (m *MemoryRepository) CreateCommunityPost(input *dto.CommunityPostInput) model.CommunityPost {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	post := model.CommunityPost{
+		ID:      fmt.Sprintf("post-%d", len(m.posts)+1),
+		Title:   input.Title,
+		Body:    input.Body,
+		Images:  input.Image,
+		Office:  input.Office,
+		Author:  input.Author,
+		Visible: input.Visible,
+	}
+	m.posts = append(m.posts, post)
+	return post
+}
+
+func (m *MemoryRepository) ReportCommunityPost(postID string, input *dto.ReportInput) model.CommunityReport {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	report := model.CommunityReport{
+		ID:       fmt.Sprintf("report-%d", len(m.reports)+1),
+		PostID:   postID,
+		Reason:   input.Reason,
+		Status:   "pending",
+		CreateAt: time.Now().Format(time.RFC3339),
+	}
+	m.reports = append(m.reports, report)
+	return report
+}
+
+func (m *MemoryRepository) ListAdvisors() []model.AdvisorProfile {
+	return m.advisors
+}
+
+func (m *MemoryRepository) CreateAdvisorLead(input *dto.AdvisorLeadInput) model.AdvisorLead {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	lead := model.AdvisorLead{
+		ID:        fmt.Sprintf("lead-%d", len(m.advisorLead)+1),
+		AdvisorID: input.AdvisorID,
+		Name:      input.Name,
+		Email:     input.Email,
+		Message:   input.Message,
+	}
+	m.advisorLead = append(m.advisorLead, lead)
+	return lead
+}
+
+func (m *MemoryRepository) IngestAuctions(input *dto.IngestPayload) map[string]any {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	return map[string]any{
+		"source":   input.Source,
+		"checksum": input.Checksum,
+		"received": len(input.Rows),
+	}
+}
