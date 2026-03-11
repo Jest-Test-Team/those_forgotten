@@ -54,6 +54,11 @@ type JsonEnvelope<T> = {
 
 type DataSource = "api" | "seed";
 
+type HealthResponse = {
+  status: string;
+  repository: string;
+};
+
 export type AuctionHistory = {
   id: string;
   finalPrice: number;
@@ -74,6 +79,7 @@ export type AdminDashboardData = {
   advisorCount: number;
   courseCount: number;
   source: DataSource;
+  backendHealth: HealthResponse;
 };
 
 const defaultHistory: Record<string, AuctionHistory[]> = {
@@ -247,6 +253,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     getAdvisors(),
     getCourses(),
   ]);
+  const health = await safeFetch<HealthResponse>("/healthz");
 
   return {
     liveAuctionCount: auctionResult.auctions.length,
@@ -260,6 +267,10 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       courseResult.source === "api"
         ? "api"
         : "seed",
+    backendHealth: health ?? {
+      status: "degraded",
+      repository: "unreachable",
+    },
   };
 }
 

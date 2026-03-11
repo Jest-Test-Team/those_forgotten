@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,6 +21,31 @@ func TestListAuctions(t *testing.T) {
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
+func TestHealthzIncludesRepositoryMode(t *testing.T) {
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+
+	payload := map[string]string{}
+	if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("json.Unmarshal() error = %v", err)
+	}
+
+	if payload["repository"] == "" {
+		t.Fatalf("expected repository mode in payload")
 	}
 }
 

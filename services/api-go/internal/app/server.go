@@ -13,9 +13,10 @@ import (
 )
 
 type Server struct {
-	echo    *echo.Echo
-	port    string
-	cleanup func()
+	echo           *echo.Echo
+	port           string
+	cleanup        func()
+	repositoryMode string
 }
 
 func NewServer() (*Server, error) {
@@ -24,11 +25,13 @@ func NewServer() (*Server, error) {
 
 	repo := repository.Repository(repository.NewMemoryRepository())
 	cleanup := func() {}
+	repositoryMode := "memory"
 	if databaseURL := os.Getenv("DATABASE_URL"); databaseURL != "" {
 		postgresRepo, err := repository.NewPostgresRepository(context.Background(), databaseURL)
 		if err == nil {
 			repo = postgresRepo
 			cleanup = postgresRepo.Close
+			repositoryMode = "postgres"
 		}
 	}
 
@@ -36,7 +39,10 @@ func NewServer() (*Server, error) {
 	ctl := controller.New(svc, os.Getenv("INTERNAL_INGEST_TOKEN"))
 
 	e.GET("/healthz", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
+		return c.JSON(http.StatusOK, map[string]string{
+			"status":     "ok",
+			"repository": repositoryMode,
+		})
 	})
 
 	controller.RegisterRoutes(e, ctl)
@@ -46,7 +52,7 @@ func NewServer() (*Server, error) {
 		port = "8080"
 	}
 
-	return &Server{echo: e, port: port, cleanup: cleanup}, nil
+	return &Server{echo: e, port: port, cleanup: cleanup, repositoryMode: repositoryMode}, nil
 }
 
 func (s *Server) Start() error {
