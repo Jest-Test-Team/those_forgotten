@@ -66,6 +66,7 @@ For this repo, I would not treat free Koyeb as a durable "always-on API plus alw
 - Move crawler to scheduled remote execution
 - Prefer GitHub Actions cron first for free predictable scheduling
 - Keep Koyeb crawler service only if the schedule/runtime profile still fits free limits
+- Scaffold added: `.github/workflows/crawler-schedule.yml`
 
 ### Phase 3
 
