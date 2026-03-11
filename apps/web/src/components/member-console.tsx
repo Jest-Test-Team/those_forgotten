@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { createKeywordSubscription } from "@/lib/browser-api";
 
 const keywordOptions = ["相機", "進口車", "名牌包", "原木"];
 
@@ -8,6 +9,8 @@ export function MemberConsole() {
   const [keywords, setKeywords] = useState<string[]>(["相機", "進口車"]);
   const [draft, setDraft] = useState("");
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [message, setMessage] = useState("");
+  const [isPending, startTransition] = useTransition();
 
   const icsUrl = useMemo(
     () => "https://customs-auction.local/v1/auctions/calendar.ics?token=demo-member-token",
@@ -19,8 +22,16 @@ export function MemberConsole() {
     if (!value || keywords.includes(value)) {
       return;
     }
-    setKeywords((current) => [...current, value]);
-    setDraft("");
+
+    startTransition(async () => {
+      const result = await createKeywordSubscription(value);
+      setMessage(result.message);
+
+      if (result.ok) {
+        setKeywords((current) => [...current, value]);
+        setDraft("");
+      }
+    });
   }
 
   function toggleKeyword(keyword: string) {
@@ -60,14 +71,16 @@ export function MemberConsole() {
           <button
             type="button"
             onClick={addKeyword}
+            disabled={isPending}
             className="rounded-full bg-[color:var(--accent)] px-5 py-3 text-sm font-medium text-white"
           >
-            新增
+            {isPending ? "送出中" : "新增"}
           </button>
         </div>
         <p className="mt-4 text-sm text-[color:var(--muted)]">
           目前訂閱：{keywords.join("、")}。付費會員匹配新案時即時接收 Web Push。
         </p>
+        {message ? <p className="mt-3 text-sm text-[color:var(--accent)]">{message}</p> : null}
       </div>
 
       <div className="glass rounded-[2rem] p-6">

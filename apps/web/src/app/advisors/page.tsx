@@ -24,7 +24,7 @@ export default function AdvisorsPage() {
               <div className="mt-5 flex items-center justify-between">
                 <span className="text-sm text-[color:var(--accent)]">{advisor.responseTime}</span>
               </div>
-              <AdvisorLeadForm advisorName={advisor.name} />
+              <AdvisorLeadForm advisorId={advisor.id} advisorName={advisor.name} />
             </article>
           ))}
         </div>
