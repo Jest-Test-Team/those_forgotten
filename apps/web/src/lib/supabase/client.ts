@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
 export function createBrowserSupabaseClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -8,10 +8,5 @@ export function createBrowserSupabaseClient() {
     throw new Error("Missing Supabase browser environment variables.");
   }
 
-  return createClient(url, anonKey, {
-    auth: {
-      flowType: "pkce",
-      persistSession: true,
-    },
-  });
+  return createBrowserClient(url, anonKey);
 }

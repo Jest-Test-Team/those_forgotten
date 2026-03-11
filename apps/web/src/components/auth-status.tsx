@@ -11,7 +11,11 @@ type AuthState = {
   enabled: boolean;
 };
 
-export function AuthStatus() {
+type Props = {
+  nextPath?: string;
+};
+
+export function AuthStatus({ nextPath = "/member" }: Props) {
   const [client] = useState<SupabaseClient | null>(() => {
     try {
       return createBrowserSupabaseClient();
@@ -61,7 +65,7 @@ export function AuthStatus() {
 
     startTransition(async () => {
       const callbackPath = process.env.NEXT_PUBLIC_SUPABASE_AUTH_REDIRECT || "/auth/callback";
-      const redirectTo = `${window.location.origin}${callbackPath}?next=/member`;
+      const redirectTo = `${window.location.origin}${callbackPath}?next=${encodeURIComponent(nextPath)}`;
       const { data, error } = await client.auth.signInWithOAuth({
         provider: "google",
         options: {
