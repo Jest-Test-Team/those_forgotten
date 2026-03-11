@@ -285,6 +285,23 @@ paths:
                 properties:
                   data:
                     $ref: "#/components/schemas/CommunityReport"
+  /v1/admin/community-reports:
+    get:
+      summary: List community moderation reports
+      operationId: listCommunityReports
+      responses:
+        "200":
+          description: Moderation reports
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CommunityReport"
   /v1/advisors:
     get:
       summary: List advisors
@@ -515,6 +532,10 @@ components:
         id:
           type: string
         postId:
+          type: string
+        postTitle:
+          type: string
+        office:
           type: string
         reason:
           type: string
