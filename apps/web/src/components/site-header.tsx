@@ -1,3 +1,4 @@
+import { AuthStatus } from "@/components/auth-status";
 import Link from "next/link";
 
 const navItems = [
@@ -23,6 +24,9 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
+        <div className="hidden md:block">
+          <AuthStatus />
+        </div>
       </div>
     </header>
   );
