@@ -99,6 +99,10 @@ func (s *PlatformService) ListAdvisors() []model.AdvisorProfile {
 	return s.repo.ListAdvisors()
 }
 
+func (s *PlatformService) ListAdvisorLeads() []model.AdvisorLead {
+	return s.repo.ListAdvisorLeads()
+}
+
 func (s *PlatformService) CreateAdvisorLead(input *dto.AdvisorLeadInput) model.AdvisorLead {
 	return s.repo.CreateAdvisorLead(input)
 }

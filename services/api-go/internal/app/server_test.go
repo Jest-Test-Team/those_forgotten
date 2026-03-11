@@ -209,6 +209,22 @@ func TestCreateAdvisorLead(t *testing.T) {
 	}
 }
 
+func TestListAdvisorLeads(t *testing.T) {
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/advisor-leads", nil)
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
 func TestReportCommunityPost(t *testing.T) {
 	server, err := NewServer()
 	if err != nil {

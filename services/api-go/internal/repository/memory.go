@@ -24,6 +24,7 @@ type Repository interface {
 	ReportCommunityPost(postID string, input *dto.ReportInput) model.CommunityReport
 	ListCommunityReports() []model.CommunityReport
 	ListAdvisors() []model.AdvisorProfile
+	ListAdvisorLeads() []model.AdvisorLead
 	CreateAdvisorLead(input *dto.AdvisorLeadInput) model.AdvisorLead
 	IngestAuctions(input *dto.IngestPayload) map[string]any
 }
@@ -80,6 +81,9 @@ func NewMemoryRepository() *MemoryRepository {
 		},
 		advisors: []model.AdvisorProfile{
 			{ID: "advisor-001", Name: "王顧問", Specialty: "進口車標售", Description: "協助驗車與相關文件流程。"},
+		},
+		advisorLead: []model.AdvisorLead{
+			{ID: "lead-001", AdvisorID: "advisor-001", AdvisorName: "王顧問", Name: "示例會員", Email: "member@example.com", Message: "需要協助驗車與提領安排。", Category: "進口車驗車", CreatedAt: time.Now().Add(-90 * time.Minute).Format(time.RFC3339)},
 		},
 		subs: []model.KeywordSubscription{
 			{ID: "sub-1", Keyword: "相機"},
@@ -213,16 +217,31 @@ func (m *MemoryRepository) ListAdvisors() []model.AdvisorProfile {
 	return m.advisors
 }
 
+func (m *MemoryRepository) ListAdvisorLeads() []model.AdvisorLead {
+	return append([]model.AdvisorLead{}, m.advisorLead...)
+}
+
 func (m *MemoryRepository) CreateAdvisorLead(input *dto.AdvisorLeadInput) model.AdvisorLead {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	advisorName := ""
+	for _, advisor := range m.advisors {
+		if advisor.ID == input.AdvisorID {
+			advisorName = advisor.Name
+			break
+		}
+	}
+
 	lead := model.AdvisorLead{
-		ID:        fmt.Sprintf("lead-%d", len(m.advisorLead)+1),
-		AdvisorID: input.AdvisorID,
-		Name:      input.Name,
-		Email:     input.Email,
-		Message:   input.Message,
+		ID:          fmt.Sprintf("lead-%d", len(m.advisorLead)+1),
+		AdvisorID:   input.AdvisorID,
+		AdvisorName: advisorName,
+		Name:        input.Name,
+		Email:       input.Email,
+		Message:     input.Message,
+		Category:    input.Category,
+		CreatedAt:   time.Now().Format(time.RFC3339),
 	}
 	m.advisorLead = append(m.advisorLead, lead)
 	return lead

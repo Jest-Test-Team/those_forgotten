@@ -459,6 +459,47 @@ func (p *PostgresRepository) ListAdvisors() []model.AdvisorProfile {
 	return advisors
 }
 
+func (p *PostgresRepository) ListAdvisorLeads() []model.AdvisorLead {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := p.pool.Query(ctx, `
+		SELECT al.id::text, al.advisor_id::text, ap.name, al.name, al.email, al.message, COALESCE(al.category, ''), al.created_at::text
+		FROM advisor_leads al
+		JOIN advisor_profiles ap ON ap.id = al.advisor_id
+		ORDER BY al.created_at DESC
+		LIMIT 20
+	`)
+	if err != nil {
+		return p.memory.ListAdvisorLeads()
+	}
+	defer rows.Close()
+
+	leads := []model.AdvisorLead{}
+	for rows.Next() {
+		var lead model.AdvisorLead
+		if err := rows.Scan(
+			&lead.ID,
+			&lead.AdvisorID,
+			&lead.AdvisorName,
+			&lead.Name,
+			&lead.Email,
+			&lead.Message,
+			&lead.Category,
+			&lead.CreatedAt,
+		); err != nil {
+			return p.memory.ListAdvisorLeads()
+		}
+		leads = append(leads, lead)
+	}
+
+	if len(leads) == 0 {
+		return p.memory.ListAdvisorLeads()
+	}
+
+	return leads
+}
+
 func (p *PostgresRepository) CreateAdvisorLead(input *dto.AdvisorLeadInput) model.AdvisorLead {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -483,6 +524,8 @@ func (p *PostgresRepository) CreateAdvisorLead(input *dto.AdvisorLeadInput) mode
 		Name:      input.Name,
 		Email:     input.Email,
 		Message:   input.Message,
+		Category:  input.Category,
+		CreatedAt: time.Now().Format(time.RFC3339),
 	}
 }
 

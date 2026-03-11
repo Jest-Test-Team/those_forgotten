@@ -160,6 +160,44 @@ func TestListCommunityReportsReadsFromPostgres(t *testing.T) {
 	}
 }
 
+func TestListAdvisorLeadsReadsFromPostgres(t *testing.T) {
+	mock, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("pgxmock.NewPool() error = %v", err)
+	}
+	defer mock.Close()
+
+	repo := NewPostgresRepositoryWithPool(mock)
+
+	rows := pgxmock.NewRows([]string{"id", "advisor_id", "advisor_name", "name", "email", "message", "category", "created_at"}).
+		AddRow(
+			"lead-001",
+			"advisor-001",
+			"王顧問",
+			"示例會員",
+			"member@example.com",
+			"需要協助驗車與提領安排。",
+			"進口車驗車",
+			"2026-03-11T10:30:00Z",
+		)
+
+	mock.ExpectQuery("SELECT al.id::text, al.advisor_id::text, ap.name, al.name, al.email, al.message, COALESCE\\(al.category, ''\\), al.created_at::text").
+		WillReturnRows(rows)
+
+	result := repo.ListAdvisorLeads()
+
+	if len(result) != 1 {
+		t.Fatalf("len(result) = %d", len(result))
+	}
+	if result[0].AdvisorName != "王顧問" {
+		t.Fatalf("result[0].AdvisorName = %q", result[0].AdvisorName)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("ExpectationsWereMet() error = %v", err)
+	}
+}
+
 func TestIngestAuctionsPersistsAnnouncementAndLot(t *testing.T) {
 	mock, err := pgxmock.NewPool()
 	if err != nil {

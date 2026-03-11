@@ -63,9 +63,12 @@ type AdvisorProfile struct {
 }
 
 type AdvisorLead struct {
-	ID        string `json:"id"`
-	AdvisorID string `json:"advisorId"`
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	Message   string `json:"message"`
+	ID          string `json:"id"`
+	AdvisorID   string `json:"advisorId"`
+	AdvisorName string `json:"advisorName,omitempty"`
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	Message     string `json:"message"`
+	Category    string `json:"category,omitempty"`
+	CreatedAt   string `json:"createdAt,omitempty"`
 }
