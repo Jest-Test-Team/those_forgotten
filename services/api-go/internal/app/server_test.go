@@ -59,6 +59,22 @@ func TestCalendarFeedRequiresToken(t *testing.T) {
 	}
 }
 
+func TestCalendarFeedWithToken(t *testing.T) {
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/auctions/calendar.ics?token=demo", nil)
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
 func TestCreateKeywordSubscriptionValidatesKeyword(t *testing.T) {
 	server, err := NewServer()
 	if err != nil {
@@ -92,6 +108,57 @@ func TestIngestAuctionsValidatesChecksum(t *testing.T) {
 	server.Echo().ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
+func TestCreateWebPushSubscription(t *testing.T) {
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/web-push-subscriptions", bytes.NewBufferString(`{"endpoint":"https://push.example.dev/demo","keys":{"p256dh":"demo","auth":"secret"}}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
+func TestCreateCommunityPost(t *testing.T) {
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/community/posts", bytes.NewBufferString(`{"title":"看貨紀錄","body":"鏡頭有刮痕","office":"臺北關"}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
+func TestCreateAdvisorLead(t *testing.T) {
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/advisor-leads", bytes.NewBufferString(`{"advisor_id":"advisor-001","name":"會員","email":"member@example.com","message":"需要代標協助"}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusCreated {
 		t.Fatalf("ServeHTTP() code = %d", rec.Code)
 	}
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { createKeywordSubscription } from "@/lib/browser-api";
+import { createKeywordSubscription, createWebPushSubscription } from "@/lib/browser-api";
 
 const keywordOptions = ["相機", "進口車", "名牌包", "原木"];
 
@@ -38,6 +38,29 @@ export function MemberConsole() {
     setKeywords((current) =>
       current.includes(keyword) ? current.filter((item) => item !== keyword) : [...current, keyword],
     );
+  }
+
+  function togglePush() {
+    if (pushEnabled) {
+      setPushEnabled(false);
+      setMessage("瀏覽器通知已停用");
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await createWebPushSubscription({
+        endpoint: "https://push.example.dev/subscriptions/demo-member",
+        keys: {
+          p256dh: "demo-p256dh-key",
+          auth: "demo-auth-key",
+        },
+      });
+
+      setMessage(result.message);
+      if (result.ok) {
+        setPushEnabled(true);
+      }
+    });
   }
 
   return (
@@ -92,10 +115,11 @@ export function MemberConsole() {
           </div>
           <button
             type="button"
-            onClick={() => setPushEnabled((current) => !current)}
+            onClick={togglePush}
+            disabled={isPending}
             className={`rounded-full px-4 py-2 text-sm font-medium ${pushEnabled ? "bg-[#17342d] text-white" : "border border-black/10"}`}
           >
-            {pushEnabled ? "已啟用" : "啟用通知"}
+            {isPending ? "處理中" : pushEnabled ? "已啟用" : "啟用通知"}
           </button>
         </div>
       </div>

@@ -45,6 +45,16 @@ export function createCommunityPost(input: { title: string; body: string; office
   return postJson("/v1/community/posts", input, "貼文已送出並進入公開列表");
 }
 
+export function createWebPushSubscription(input: {
+  endpoint: string;
+  keys: {
+    p256dh: string;
+    auth: string;
+  };
+}) {
+  return postJson("/v1/web-push-subscriptions", input, "瀏覽器通知已啟用");
+}
+
 export function createAdvisorLead(input: {
   advisorId: string;
   name: string;
