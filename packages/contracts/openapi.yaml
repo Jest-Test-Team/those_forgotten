@@ -70,6 +70,12 @@ paths:
     get:
       summary: Get personalized ICS feed
       operationId: getCalendarFeed
+      parameters:
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
       responses:
         "200":
           description: Calendar feed
@@ -77,6 +83,12 @@ paths:
             text/calendar:
               schema:
                 type: string
+        "401":
+          description: Calendar token required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/keyword-subscriptions:
     post:
       summary: Create keyword subscription
@@ -90,6 +102,10 @@ paths:
       responses:
         "201":
           description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KeywordSubscriptionResponse"
   /v1/keyword-subscriptions/{id}:
     delete:
       summary: Delete keyword subscription
@@ -116,6 +132,10 @@ paths:
       responses:
         "201":
           description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebPushSubscriptionResponse"
   /v1/knowledge/articles/{slug}:
     get:
       summary: Get a knowledge article
@@ -129,6 +149,14 @@ paths:
       responses:
         "200":
           description: Article detail
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/KnowledgeArticle"
   /v1/courses:
     get:
       summary: List courses
@@ -136,13 +164,29 @@ paths:
       responses:
         "200":
           description: Courses
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Course"
   /v1/stripe/checkout:
     post:
       summary: Create Stripe checkout session
       operationId: createCheckoutSession
+      requestBody:
+        required: false
       responses:
         "200":
           description: Checkout session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutSessionResponse"
   /v1/stripe/webhook:
     post:
       summary: Receive Stripe webhooks
@@ -157,12 +201,36 @@ paths:
       responses:
         "200":
           description: Posts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CommunityPost"
     post:
       summary: Create a community post
       operationId: createCommunityPost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityPostInput"
       responses:
         "201":
           description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/CommunityPost"
   /v1/community/posts/{id}/report:
     post:
       summary: Report a community post
@@ -173,9 +241,23 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityReportInput"
       responses:
         "201":
           description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/CommunityReport"
   /v1/advisors:
     get:
       summary: List advisors
@@ -183,20 +265,58 @@ paths:
       responses:
         "200":
           description: Advisors
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdvisorProfile"
   /v1/advisor-leads:
     post:
       summary: Create advisor lead
       operationId: createAdvisorLead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdvisorLeadInput"
       responses:
         "201":
           description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AdvisorLead"
   /internal/ingest/auctions:
     post:
       summary: Ingest normalized crawler payloads
       operationId: ingestAuctions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IngestPayload"
       responses:
         "202":
           description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/IngestResponse"
 components:
   schemas:
     AuctionLot:
@@ -235,6 +355,18 @@ components:
       properties:
         keyword:
           type: string
+    KeywordSubscriptionResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [id, keyword]
+          properties:
+            id:
+              type: string
+            keyword:
+              type: string
     WebPushSubscriptionInput:
       type: object
       required: [endpoint, keys]
@@ -249,3 +381,197 @@ components:
               type: string
             auth:
               type: string
+    WebPushSubscriptionResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [id, endpoint, keys]
+          properties:
+            id:
+              type: string
+            endpoint:
+              type: string
+            keys:
+              type: object
+              additionalProperties: true
+    KnowledgeArticle:
+      type: object
+      required: [slug, title, summary]
+      properties:
+        slug:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+    Course:
+      type: object
+      required: [id, title, description]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+    CheckoutSessionResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [provider, url]
+          properties:
+            provider:
+              type: string
+            url:
+              type: string
+    CommunityPostInput:
+      type: object
+      required: [title, body, office]
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+        office:
+          type: string
+        lot_id:
+          type: string
+        author:
+          type: string
+        image_urls:
+          type: array
+          items:
+            type: string
+    CommunityPost:
+      type: object
+      required: [id, title, body, office, author, visible]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        office:
+          type: string
+        author:
+          type: string
+        visible:
+          type: boolean
+        images:
+          type: array
+          items:
+            type: string
+    CommunityReportInput:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+    CommunityReport:
+      type: object
+      required: [id, postId, reason, status, createdAt]
+      properties:
+        id:
+          type: string
+        postId:
+          type: string
+        reason:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    AdvisorProfile:
+      type: object
+      required: [id, name, specialty, description]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        specialty:
+          type: string
+        description:
+          type: string
+    AdvisorLeadInput:
+      type: object
+      required: [advisor_id, name, email, message]
+      properties:
+        advisor_id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        message:
+          type: string
+        category:
+          type: string
+    AdvisorLead:
+      type: object
+      required: [id, advisorId, name, email, message]
+      properties:
+        id:
+          type: string
+        advisorId:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        message:
+          type: string
+    IngestPayload:
+      type: object
+      required: [source, checksum, rows]
+      properties:
+        source:
+          type: string
+        checksum:
+          type: string
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/NormalizedAuction"
+    NormalizedAuction:
+      type: object
+      required: [announcement_no, office, title, category, closing_at, original_link, warnings]
+      properties:
+        announcement_no:
+          type: string
+        office:
+          type: string
+        title:
+          type: string
+        category:
+          type: string
+        closing_at:
+          type: string
+        original_link:
+          type: string
+        warnings:
+          type: array
+          items:
+            type: string
+    IngestResponse:
+      type: object
+      required: [source, checksum, received]
+      properties:
+        source:
+          type: string
+        checksum:
+          type: string
+        received:
+          type: integer
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
