@@ -23,6 +23,13 @@ resource "vercel_project_environment_variable" "next_public_site_url" {
   target     = ["production", "preview", "development"]
 }
 
+resource "vercel_project_environment_variable" "admin_emails" {
+  project_id = vercel_project.web.id
+  key        = "ADMIN_EMAILS"
+  value      = var.admin_emails
+  target     = ["production", "preview", "development"]
+}
+
 resource "vercel_project_domain" "web_domain" {
   project_id = vercel_project.web.id
   domain     = var.web_domain

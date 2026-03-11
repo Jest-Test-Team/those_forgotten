@@ -54,6 +54,7 @@ For this repo, I would not treat free Koyeb as a durable "always-on API plus alw
 ### Phase 1
 
 - Deploy `apps/web` to Vercel Hobby
+- Set `ADMIN_EMAILS` on the web deployment so `/admin` can enforce the SSR allowlist
 - Create Supabase project and wire:
   - Auth
   - Postgres

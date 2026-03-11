@@ -102,3 +102,9 @@ variable "web_origin" {
   default     = "https://customs-auction.example.com"
   description = "Allowed web origin for API CORS."
 }
+
+variable "admin_emails" {
+  type        = string
+  default     = "admin@example.com"
+  description = "Comma-separated admin allowlist consumed by the web SSR role guard."
+}
