@@ -72,3 +72,13 @@ type AdvisorLead struct {
 	Category    string `json:"category,omitempty"`
 	CreatedAt   string `json:"createdAt,omitempty"`
 }
+
+type CrawlerStatus struct {
+	Office        string `json:"office"`
+	Status        string `json:"status"`
+	LastRunAt     string `json:"lastRunAt"`
+	NextRunAt     string `json:"nextRunAt"`
+	LastChecksum  string `json:"lastChecksum"`
+	LastRowCount  int    `json:"lastRowCount"`
+	TriggerSource string `json:"triggerSource"`
+}

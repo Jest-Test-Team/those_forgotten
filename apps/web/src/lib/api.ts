@@ -85,6 +85,16 @@ type AdvisorLeadApiRecord = {
   createdAt?: string;
 };
 
+type CrawlerStatusApiRecord = {
+  office: string;
+  status: string;
+  lastRunAt: string;
+  nextRunAt: string;
+  lastChecksum: string;
+  lastRowCount: number;
+  triggerSource: string;
+};
+
 export type AuctionHistory = {
   id: string;
   finalPrice: number;
@@ -112,6 +122,16 @@ export type AdminAdvisorLead = {
   createdAt: string;
 };
 
+export type AdminCrawlerStatus = {
+  office: string;
+  status: string;
+  lastRunAt: string;
+  nextRunAt: string;
+  lastChecksum: string;
+  lastRowCount: number;
+  triggerSource: string;
+};
+
 export type HomeData = {
   auctions: Auction[];
   posts: CommunityPost[];
@@ -127,6 +147,7 @@ export type AdminDashboardData = {
   courseCount: number;
   moderationReports: CommunityModerationReport[];
   advisorLeads: AdminAdvisorLead[];
+  crawlerStatuses: AdminCrawlerStatus[];
   source: DataSource;
   backendHealth: HealthResponse;
 };
@@ -322,13 +343,14 @@ export async function getHomeData(): Promise<HomeData> {
 }
 
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
-  const [auctionResult, postResult, advisorResult, courseResult, moderationResult, advisorLeadResult] = await Promise.all([
+  const [auctionResult, postResult, advisorResult, courseResult, moderationResult, advisorLeadResult, crawlerResult] = await Promise.all([
     getAuctions(),
     getCommunityPosts(),
     getAdvisors(),
     getCourses(),
     safeFetch<JsonEnvelope<CommunityReportApiRecord[]>>("/v1/admin/community-reports"),
     safeFetch<JsonEnvelope<AdvisorLeadApiRecord[]>>("/v1/admin/advisor-leads"),
+    safeFetch<JsonEnvelope<CrawlerStatusApiRecord[]>>("/v1/admin/crawler-status"),
   ]);
   const health = await safeFetch<HealthResponse>("/healthz");
 
@@ -381,6 +403,37 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
               message: "需要協助驗車與提領安排。",
               category: "進口車驗車",
               createdAt: "2026-03-11T10:30:00Z",
+            },
+          ],
+    crawlerStatuses:
+      crawlerResult?.data?.length
+        ? crawlerResult.data.map((crawler) => ({
+            office: crawler.office,
+            status: crawler.status,
+            lastRunAt: crawler.lastRunAt,
+            nextRunAt: crawler.nextRunAt,
+            lastChecksum: crawler.lastChecksum,
+            lastRowCount: crawler.lastRowCount,
+            triggerSource: crawler.triggerSource,
+          }))
+        : [
+            {
+              office: "基隆關",
+              status: "healthy",
+              lastRunAt: "2026-03-11T10:18:00Z",
+              nextRunAt: "2026-03-11T10:48:00Z",
+              lastChecksum: "keelung-demo",
+              lastRowCount: 4,
+              triggerSource: "schedule",
+            },
+            {
+              office: "臺中關",
+              status: "warning",
+              lastRunAt: "2026-03-11T09:57:00Z",
+              nextRunAt: "2026-03-11T10:27:00Z",
+              lastChecksum: "taichung-demo",
+              lastRowCount: 0,
+              triggerSource: "retry",
             },
           ],
     source:

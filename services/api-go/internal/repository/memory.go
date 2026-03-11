@@ -25,6 +25,7 @@ type Repository interface {
 	ListCommunityReports() []model.CommunityReport
 	ListAdvisors() []model.AdvisorProfile
 	ListAdvisorLeads() []model.AdvisorLead
+	ListCrawlerStatuses() []model.CrawlerStatus
 	CreateAdvisorLead(input *dto.AdvisorLeadInput) model.AdvisorLead
 	IngestAuctions(input *dto.IngestPayload) map[string]any
 }
@@ -41,6 +42,7 @@ type MemoryRepository struct {
 	webPush     []map[string]any
 	reports     []model.CommunityReport
 	advisorLead []model.AdvisorLead
+	crawlers    []model.CrawlerStatus
 }
 
 func NewMemoryRepository() *MemoryRepository {
@@ -84,6 +86,12 @@ func NewMemoryRepository() *MemoryRepository {
 		},
 		advisorLead: []model.AdvisorLead{
 			{ID: "lead-001", AdvisorID: "advisor-001", AdvisorName: "王顧問", Name: "示例會員", Email: "member@example.com", Message: "需要協助驗車與提領安排。", Category: "進口車驗車", CreatedAt: time.Now().Add(-90 * time.Minute).Format(time.RFC3339)},
+		},
+		crawlers: []model.CrawlerStatus{
+			{Office: "基隆關", Status: "healthy", LastRunAt: time.Now().Add(-12 * time.Minute).Format(time.RFC3339), NextRunAt: time.Now().Add(18 * time.Minute).Format(time.RFC3339), LastChecksum: "keelung-demo", LastRowCount: 4, TriggerSource: "schedule"},
+			{Office: "臺北關", Status: "healthy", LastRunAt: time.Now().Add(-9 * time.Minute).Format(time.RFC3339), NextRunAt: time.Now().Add(21 * time.Minute).Format(time.RFC3339), LastChecksum: "taipei-demo", LastRowCount: 6, TriggerSource: "schedule"},
+			{Office: "臺中關", Status: "warning", LastRunAt: time.Now().Add(-33 * time.Minute).Format(time.RFC3339), NextRunAt: time.Now().Add(-3 * time.Minute).Format(time.RFC3339), LastChecksum: "taichung-demo", LastRowCount: 0, TriggerSource: "retry"},
+			{Office: "高雄關", Status: "healthy", LastRunAt: time.Now().Add(-7 * time.Minute).Format(time.RFC3339), NextRunAt: time.Now().Add(23 * time.Minute).Format(time.RFC3339), LastChecksum: "kaohsiung-demo", LastRowCount: 5, TriggerSource: "schedule"},
 		},
 		subs: []model.KeywordSubscription{
 			{ID: "sub-1", Keyword: "相機"},
@@ -219,6 +227,10 @@ func (m *MemoryRepository) ListAdvisors() []model.AdvisorProfile {
 
 func (m *MemoryRepository) ListAdvisorLeads() []model.AdvisorLead {
 	return append([]model.AdvisorLead{}, m.advisorLead...)
+}
+
+func (m *MemoryRepository) ListCrawlerStatuses() []model.CrawlerStatus {
+	return append([]model.CrawlerStatus{}, m.crawlers...)
 }
 
 func (m *MemoryRepository) CreateAdvisorLead(input *dto.AdvisorLeadInput) model.AdvisorLead {

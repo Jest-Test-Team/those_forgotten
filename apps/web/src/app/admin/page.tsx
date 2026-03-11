@@ -55,6 +55,45 @@ export default async function AdminPage() {
             </div>
           ))}
         </div>
+        <section className="mt-8 rounded-[1.5rem] border border-black/8 bg-white/70 p-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="label">Crawler Health</p>
+              <h2 className="mt-2 text-2xl font-semibold">各關別爬蟲狀態</h2>
+            </div>
+            <p className="text-sm text-[color:var(--muted)]">每 30 分鐘排程 + 手動重抓</p>
+          </div>
+          <div className="mt-5 grid gap-3 lg:grid-cols-2">
+            {dashboard.crawlerStatuses.map((crawler) => (
+              <article key={crawler.office} className="rounded-[1.25rem] border border-black/8 bg-white p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm text-[color:var(--muted)]">{crawler.triggerSource}</p>
+                    <h3 className="mt-1 text-lg font-semibold">{crawler.office}</h3>
+                  </div>
+                  <p
+                    className={`rounded-full px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] ${
+                      crawler.status === "healthy"
+                        ? "bg-emerald-100 text-emerald-900"
+                        : "bg-amber-100 text-amber-900"
+                    }`}
+                  >
+                    {crawler.status}
+                  </p>
+                </div>
+                <p className="mt-3 text-sm leading-7 text-[color:var(--muted)]">
+                  最近抓到 {crawler.lastRowCount} 筆，checksum {crawler.lastChecksum}
+                </p>
+                <p className="mt-3 text-xs text-[color:var(--muted)]">
+                  Last run {new Date(crawler.lastRunAt).toLocaleString("zh-TW", { hour12: false })}
+                </p>
+                <p className="mt-1 text-xs text-[color:var(--muted)]">
+                  Next run {new Date(crawler.nextRunAt).toLocaleString("zh-TW", { hour12: false })}
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
         <div className="mt-8 grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
           <section className="rounded-[1.5rem] border border-black/8 bg-white/70 p-6">
             <div className="flex items-center justify-between gap-4">

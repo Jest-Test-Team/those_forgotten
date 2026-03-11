@@ -103,6 +103,10 @@ func (s *PlatformService) ListAdvisorLeads() []model.AdvisorLead {
 	return s.repo.ListAdvisorLeads()
 }
 
+func (s *PlatformService) ListCrawlerStatuses() []model.CrawlerStatus {
+	return s.repo.ListCrawlerStatuses()
+}
+
 func (s *PlatformService) CreateAdvisorLead(input *dto.AdvisorLeadInput) model.AdvisorLead {
 	return s.repo.CreateAdvisorLead(input)
 }

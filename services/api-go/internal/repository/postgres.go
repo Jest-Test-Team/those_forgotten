@@ -500,6 +500,10 @@ func (p *PostgresRepository) ListAdvisorLeads() []model.AdvisorLead {
 	return leads
 }
 
+func (p *PostgresRepository) ListCrawlerStatuses() []model.CrawlerStatus {
+	return p.memory.ListCrawlerStatuses()
+}
+
 func (p *PostgresRepository) CreateAdvisorLead(input *dto.AdvisorLeadInput) model.AdvisorLead {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()

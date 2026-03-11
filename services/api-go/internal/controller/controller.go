@@ -35,6 +35,7 @@ func RegisterRoutes(e *echo.Echo, ctl *Controller) {
 	api.POST("/community/posts", ctl.CreateCommunityPost)
 	api.POST("/community/posts/:id/report", ctl.ReportCommunityPost)
 	api.GET("/admin/community-reports", ctl.ListCommunityReports)
+	api.GET("/admin/crawler-status", ctl.ListCrawlerStatuses)
 	api.GET("/advisors", ctl.ListAdvisors)
 	api.GET("/admin/advisor-leads", ctl.ListAdvisorLeads)
 	api.POST("/advisor-leads", ctl.CreateAdvisorLead)
@@ -152,6 +153,10 @@ func (ctl *Controller) ReportCommunityPost(c echo.Context) error {
 
 func (ctl *Controller) ListCommunityReports(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]any{"data": ctl.service.ListCommunityReports()})
+}
+
+func (ctl *Controller) ListCrawlerStatuses(c echo.Context) error {
+	return c.JSON(http.StatusOK, map[string]any{"data": ctl.service.ListCrawlerStatuses()})
 }
 
 func (ctl *Controller) ListAdvisors(c echo.Context) error {
