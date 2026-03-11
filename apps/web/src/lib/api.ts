@@ -74,6 +74,17 @@ type CommunityReportApiRecord = {
   createdAt: string;
 };
 
+type AdvisorLeadApiRecord = {
+  id: string;
+  advisorId: string;
+  advisorName?: string;
+  name: string;
+  email: string;
+  message: string;
+  category?: string;
+  createdAt?: string;
+};
+
 export type AuctionHistory = {
   id: string;
   finalPrice: number;
@@ -87,6 +98,17 @@ export type CommunityModerationReport = {
   office: string;
   reason: string;
   status: string;
+  createdAt: string;
+};
+
+export type AdminAdvisorLead = {
+  id: string;
+  advisorId: string;
+  advisorName: string;
+  name: string;
+  email: string;
+  message: string;
+  category: string;
   createdAt: string;
 };
 
@@ -104,6 +126,7 @@ export type AdminDashboardData = {
   advisorCount: number;
   courseCount: number;
   moderationReports: CommunityModerationReport[];
+  advisorLeads: AdminAdvisorLead[];
   source: DataSource;
   backendHealth: HealthResponse;
 };
@@ -299,12 +322,13 @@ export async function getHomeData(): Promise<HomeData> {
 }
 
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
-  const [auctionResult, postResult, advisorResult, courseResult, moderationResult] = await Promise.all([
+  const [auctionResult, postResult, advisorResult, courseResult, moderationResult, advisorLeadResult] = await Promise.all([
     getAuctions(),
     getCommunityPosts(),
     getAdvisors(),
     getCourses(),
     safeFetch<JsonEnvelope<CommunityReportApiRecord[]>>("/v1/admin/community-reports"),
+    safeFetch<JsonEnvelope<AdvisorLeadApiRecord[]>>("/v1/admin/advisor-leads"),
   ]);
   const health = await safeFetch<HealthResponse>("/healthz");
 
@@ -333,6 +357,30 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
               reason: "缺少看貨照片佐證",
               status: "pending",
               createdAt: "2026-03-11T10:00:00Z",
+            },
+          ],
+    advisorLeads:
+      advisorLeadResult?.data?.length
+        ? advisorLeadResult.data.map((lead) => ({
+            id: lead.id,
+            advisorId: lead.advisorId,
+            advisorName: lead.advisorName ?? "待指派顧問",
+            name: lead.name,
+            email: lead.email,
+            message: lead.message,
+            category: lead.category ?? "一般諮詢",
+            createdAt: lead.createdAt ?? "2026-03-11T10:30:00Z",
+          }))
+        : [
+            {
+              id: "seed-lead-001",
+              advisorId: "advisor-001",
+              advisorName: "王顧問",
+              name: "示例會員",
+              email: "member@example.com",
+              message: "需要協助驗車與提領安排。",
+              category: "進口車驗車",
+              createdAt: "2026-03-11T10:30:00Z",
             },
           ],
     source:
