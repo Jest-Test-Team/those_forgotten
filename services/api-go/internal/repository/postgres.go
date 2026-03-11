@@ -8,13 +8,23 @@ import (
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/dto"
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/model"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var demoProfileID = uuid.NewSHA1(uuid.NameSpaceURL, []byte("customs-auction-platform-demo-profile"))
 
+type postgresQuerier interface {
+	Close()
+	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	Begin(ctx context.Context) (pgx.Tx, error)
+}
+
 type PostgresRepository struct {
-	pool   *pgxpool.Pool
+	pool   postgresQuerier
 	memory *MemoryRepository
 }
 
@@ -43,6 +53,13 @@ func NewPostgresRepository(ctx context.Context, databaseURL string) (*PostgresRe
 		pool:   pool,
 		memory: NewMemoryRepository(),
 	}, nil
+}
+
+func NewPostgresRepositoryWithPool(pool postgresQuerier) *PostgresRepository {
+	return &PostgresRepository{
+		pool:   pool,
+		memory: NewMemoryRepository(),
+	}
 }
 
 func (p *PostgresRepository) Close() {
