@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/controller"
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/middleware"
@@ -35,7 +36,8 @@ func NewServer() (*Server, error) {
 		}
 	}
 
-	svc := service.NewPlatformService(repo)
+	adminEmails := parseAdminEmails(os.Getenv("ADMIN_EMAILS"))
+	svc := service.NewPlatformService(repo, adminEmails)
 	ctl := controller.New(svc, os.Getenv("INTERNAL_INGEST_TOKEN"))
 
 	e.GET("/healthz", func(c echo.Context) error {
@@ -53,6 +55,23 @@ func NewServer() (*Server, error) {
 	}
 
 	return &Server{echo: e, port: port, cleanup: cleanup, repositoryMode: repositoryMode}, nil
+}
+
+func parseAdminEmails(raw string) []string {
+	if raw == "" {
+		return nil
+	}
+
+	values := strings.Split(raw, ",")
+	emails := make([]string, 0, len(values))
+	for _, value := range values {
+		normalized := strings.TrimSpace(strings.ToLower(value))
+		if normalized != "" {
+			emails = append(emails, normalized)
+		}
+	}
+
+	return emails
 }
 
 func (s *Server) Start() error {

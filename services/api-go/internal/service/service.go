@@ -9,11 +9,12 @@ import (
 )
 
 type PlatformService struct {
-	repo repository.Repository
+	repo        repository.Repository
+	adminEmails []string
 }
 
-func NewPlatformService(repo repository.Repository) *PlatformService {
-	return &PlatformService{repo: repo}
+func NewPlatformService(repo repository.Repository, adminEmails []string) *PlatformService {
+	return &PlatformService{repo: repo, adminEmails: adminEmails}
 }
 
 func (s *PlatformService) ListAuctions() []model.AuctionLot {
@@ -117,4 +118,31 @@ func (s *PlatformService) CreateAdvisorLead(input *dto.AdvisorLeadInput) model.A
 
 func (s *PlatformService) IngestAuctions(input *dto.IngestPayload) map[string]any {
 	return s.repo.IngestAuctions(input)
+}
+
+func (s *PlatformService) GetAuthContext(email string) model.AuthContext {
+	normalized := strings.TrimSpace(strings.ToLower(email))
+	context := model.AuthContext{
+		Email:        normalized,
+		Role:         "guest",
+		Capabilities: []string{"browse"},
+		Source:       "allowlist",
+	}
+
+	if normalized == "" {
+		return context
+	}
+
+	context.Role = "member"
+	context.Capabilities = []string{"browse", "member"}
+
+	for _, adminEmail := range s.adminEmails {
+		if normalized == adminEmail {
+			context.Role = "admin"
+			context.Capabilities = []string{"browse", "member", "admin"}
+			break
+		}
+	}
+
+	return context
 }

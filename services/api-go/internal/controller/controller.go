@@ -23,6 +23,7 @@ func RegisterRoutes(e *echo.Echo, ctl *Controller) {
 	api.GET("/auctions/:id", ctl.GetAuction)
 	api.GET("/auctions/:id/history", ctl.GetAuctionHistory)
 	api.GET("/auctions/calendar.ics", ctl.GetCalendarFeed)
+	api.GET("/auth/context", ctl.GetAuthContext)
 	api.GET("/keyword-subscriptions", ctl.ListKeywordSubscriptions)
 	api.POST("/keyword-subscriptions", ctl.CreateKeywordSubscription)
 	api.DELETE("/keyword-subscriptions/:id", ctl.DeleteKeywordSubscription)
@@ -68,6 +69,10 @@ func (ctl *Controller) GetCalendarFeed(c echo.Context) error {
 	}
 
 	return c.Blob(http.StatusOK, "text/calendar", []byte(ctl.service.CalendarFeed()))
+}
+
+func (ctl *Controller) GetAuthContext(c echo.Context) error {
+	return c.JSON(http.StatusOK, map[string]any{"data": ctl.service.GetAuthContext(c.QueryParam("email"))})
 }
 
 func (ctl *Controller) ListKeywordSubscriptions(c echo.Context) error {

@@ -105,6 +105,33 @@ func TestCalendarFeedWithToken(t *testing.T) {
 	}
 }
 
+func TestGetAuthContext(t *testing.T) {
+	t.Setenv("ADMIN_EMAILS", "admin@example.com")
+
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/auth/context?email=admin@example.com", nil)
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+
+	payload := map[string]map[string]any{}
+	if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("json.Unmarshal() error = %v", err)
+	}
+
+	if payload["data"]["role"] != "admin" {
+		t.Fatalf("expected admin role, got %v", payload["data"]["role"])
+	}
+}
+
 func TestListKeywordSubscriptions(t *testing.T) {
 	server, err := NewServer()
 	if err != nil {

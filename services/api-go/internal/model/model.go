@@ -82,3 +82,10 @@ type CrawlerStatus struct {
 	LastRowCount  int    `json:"lastRowCount"`
 	TriggerSource string `json:"triggerSource"`
 }
+
+type AuthContext struct {
+	Email        string   `json:"email,omitempty"`
+	Role         string   `json:"role"`
+	Capabilities []string `json:"capabilities"`
+	Source       string   `json:"source"`
+}
