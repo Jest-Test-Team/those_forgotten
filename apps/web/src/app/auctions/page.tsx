@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { Shell } from "@/components/shell";
-import { auctions } from "@/lib/site-data";
+import { getAuctions } from "@/lib/api";
 
 export const metadata = {
   title: "標售清單",
 };
 
-export default function AuctionsPage() {
+export default async function AuctionsPage() {
+  const { auctions, source } = await getAuctions();
+
   return (
     <Shell>
       <section className="glass rounded-[2rem] p-8">
@@ -15,6 +17,7 @@ export default function AuctionsPage() {
         <p className="mt-4 max-w-2xl text-[color:var(--muted)]">
           列表頁保留官方連結、看貨日期、截標時間與風險標籤，供會員設定關鍵字推播與 ICS 日曆訂閱。
         </p>
+        <p className="mt-3 text-sm text-[color:var(--muted)]">目前資料來源：{source === "api" ? "即時 API" : "本地 seed fallback"}</p>
         <div className="mt-8 space-y-4">
           {auctions.map((auction) => (
             <article key={auction.id} className="rounded-[1.5rem] border border-black/8 bg-white/60 p-5">

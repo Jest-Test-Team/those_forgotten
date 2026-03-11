@@ -2,9 +2,11 @@ import Link from "next/link";
 import { RiskPanel } from "@/components/risk-panel";
 import { Shell } from "@/components/shell";
 import { TaxCalculator } from "@/components/tax-calculator";
-import { advisors, auctions, courses, historicalCoverageStart, posts } from "@/lib/site-data";
+import { getHomeData, historicalCoverageStart } from "@/lib/api";
 
-export default function Home() {
+export default async function Home() {
+  const { auctions, posts, advisors, courses, source } = await getHomeData();
+
   return (
     <Shell>
       <section className="hero-grid">
@@ -26,16 +28,16 @@ export default function Home() {
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             <div className="rounded-[1.5rem] bg-white/65 p-4">
-              <p className="text-3xl font-semibold">4</p>
-              <p className="mt-1 text-sm text-[color:var(--muted)]">關別資料源接入</p>
+              <p className="text-3xl font-semibold">{auctions.length}</p>
+              <p className="mt-1 text-sm text-[color:var(--muted)]">首頁載入標案數</p>
             </div>
             <div className="rounded-[1.5rem] bg-white/65 p-4">
               <p className="text-3xl font-semibold">30 分</p>
               <p className="mt-1 text-sm text-[color:var(--muted)]">預設輪詢間隔</p>
             </div>
             <div className="rounded-[1.5rem] bg-white/65 p-4">
-              <p className="text-3xl font-semibold">{historicalCoverageStart}</p>
-              <p className="mt-1 text-sm text-[color:var(--muted)]">歷史成交資料起算日</p>
+              <p className="text-3xl font-semibold">{source === "api" ? "API" : "Seed"}</p>
+              <p className="mt-1 text-sm text-[color:var(--muted)]">目前資料來源</p>
             </div>
           </div>
         </div>
@@ -79,8 +81,8 @@ export default function Home() {
         <div className="glass rounded-[2rem] p-6">
           <p className="label">看貨心得</p>
           <div className="mt-4 space-y-4">
-            {posts.map((post) => (
-              <div key={post.id} className="rounded-[1.5rem] border border-black/8 bg-white/60 p-5">
+              {posts.map((post) => (
+                <div key={post.id} className="rounded-[1.5rem] border border-black/8 bg-white/60 p-5">
                 <p className="text-sm text-[color:var(--muted)]">{post.office} / {post.author}</p>
                 <h3 className="mt-2 text-xl font-semibold">{post.title}</h3>
                 <p className="mt-2 text-sm leading-7 text-[color:var(--muted)]">{post.body}</p>
@@ -116,6 +118,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
+            <p className="mt-4 text-sm text-[color:var(--muted)]">歷史成交資料起算日：{historicalCoverageStart}</p>
           </div>
         </div>
       </section>

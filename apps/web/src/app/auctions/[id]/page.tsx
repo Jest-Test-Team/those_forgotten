@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { RiskPanel } from "@/components/risk-panel";
 import { Shell } from "@/components/shell";
-import { auctions, historicalCoverageStart } from "@/lib/site-data";
+import { getAuctionById, getAuctionHistory, historicalCoverageStart } from "@/lib/api";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -9,7 +9,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
-  const auction = auctions.find((item) => item.id === id);
+  const { auction } = await getAuctionById(id);
 
   if (!auction) {
     return { title: "標售不存在" };
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function AuctionDetailPage({ params }: Props) {
   const { id } = await params;
-  const auction = auctions.find((item) => item.id === id);
+  const [{ auction, source }, { rows: historyRows }] = await Promise.all([getAuctionById(id), getAuctionHistory(id)]);
 
   if (!auction) {
     notFound();
@@ -74,6 +74,20 @@ export default async function AuctionDetailPage({ params }: Props) {
             <p className="mt-3 text-sm leading-7 text-[color:var(--muted)]">
               成交資料庫目前僅涵蓋 {historicalCoverageStart} 之後的平台蒐集結果。v1 不回補既有歷史資料。
             </p>
+            <div className="mt-4 space-y-2">
+              {historyRows.length > 0 ? (
+                historyRows.map((row) => (
+                  <div key={row.id} className="rounded-2xl border border-black/8 bg-white/70 px-4 py-3 text-sm text-[color:var(--muted)]">
+                    成交價 NT$ {row.finalPrice.toLocaleString()} / {new Date(row.recordedAt).toLocaleDateString("zh-TW")}
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-black/8 bg-white/70 px-4 py-3 text-sm text-[color:var(--muted)]">
+                  尚無歷史成交資料
+                </div>
+              )}
+            </div>
+            <p className="mt-4 text-sm text-[color:var(--muted)]">目前資料來源：{source === "api" ? "即時 API" : "本地 seed fallback"}</p>
           </div>
         </div>
         <RiskPanel />
