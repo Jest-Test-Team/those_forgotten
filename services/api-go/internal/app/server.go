@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"net/http"
 	"os"
 
@@ -12,15 +13,25 @@ import (
 )
 
 type Server struct {
-	echo *echo.Echo
-	port string
+	echo    *echo.Echo
+	port    string
+	cleanup func()
 }
 
 func NewServer() (*Server, error) {
 	e := echo.New()
 	middleware.Install(e, os.Getenv("WEB_ORIGIN"))
 
-	repo := repository.NewMemoryRepository()
+	repo := repository.Repository(repository.NewMemoryRepository())
+	cleanup := func() {}
+	if databaseURL := os.Getenv("DATABASE_URL"); databaseURL != "" {
+		postgresRepo, err := repository.NewPostgresRepository(context.Background(), databaseURL)
+		if err == nil {
+			repo = postgresRepo
+			cleanup = postgresRepo.Close
+		}
+	}
+
 	svc := service.NewPlatformService(repo)
 	ctl := controller.New(svc, os.Getenv("INTERNAL_INGEST_TOKEN"))
 
@@ -35,10 +46,11 @@ func NewServer() (*Server, error) {
 		port = "8080"
 	}
 
-	return &Server{echo: e, port: port}, nil
+	return &Server{echo: e, port: port, cleanup: cleanup}, nil
 }
 
 func (s *Server) Start() error {
+	defer s.cleanup()
 	return s.echo.Start(":" + s.port)
 }
 
