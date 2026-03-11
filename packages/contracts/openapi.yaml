@@ -302,6 +302,23 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/CommunityReport"
+  /v1/admin/crawler-status:
+    get:
+      summary: List crawler office status
+      operationId: listCrawlerStatuses
+      responses:
+        "200":
+          description: Crawler statuses
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CrawlerStatus"
   /v1/advisors:
     get:
       summary: List advisors
@@ -608,6 +625,26 @@ components:
         createdAt:
           type: string
           format: date-time
+    CrawlerStatus:
+      type: object
+      required: [office, status, lastRunAt, nextRunAt, lastChecksum, lastRowCount, triggerSource]
+      properties:
+        office:
+          type: string
+        status:
+          type: string
+        lastRunAt:
+          type: string
+          format: date-time
+        nextRunAt:
+          type: string
+          format: date-time
+        lastChecksum:
+          type: string
+        lastRowCount:
+          type: integer
+        triggerSource:
+          type: string
     IngestPayload:
       type: object
       required: [source, checksum, rows]
