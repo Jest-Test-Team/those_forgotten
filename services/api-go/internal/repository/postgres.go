@@ -388,6 +388,46 @@ func (p *PostgresRepository) ReportCommunityPost(postID string, input *dto.Repor
 	}
 }
 
+func (p *PostgresRepository) ListCommunityReports() []model.CommunityReport {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := p.pool.Query(ctx, `
+		SELECT cr.id::text, cr.post_id::text, cp.title, cp.office, cr.reason, cr.status, cr.created_at::text
+		FROM community_reports cr
+		JOIN community_posts cp ON cp.id = cr.post_id
+		ORDER BY cr.created_at DESC
+		LIMIT 20
+	`)
+	if err != nil {
+		return p.memory.ListCommunityReports()
+	}
+	defer rows.Close()
+
+	reports := []model.CommunityReport{}
+	for rows.Next() {
+		var report model.CommunityReport
+		if err := rows.Scan(
+			&report.ID,
+			&report.PostID,
+			&report.PostTitle,
+			&report.Office,
+			&report.Reason,
+			&report.Status,
+			&report.CreateAt,
+		); err != nil {
+			return p.memory.ListCommunityReports()
+		}
+		reports = append(reports, report)
+	}
+
+	if len(reports) == 0 {
+		return p.memory.ListCommunityReports()
+	}
+
+	return reports
+}
+
 func (p *PostgresRepository) ListAdvisors() []model.AdvisorProfile {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()

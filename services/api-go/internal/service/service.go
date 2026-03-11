@@ -91,6 +91,10 @@ func (s *PlatformService) ReportCommunityPost(postID string, input *dto.ReportIn
 	return s.repo.ReportCommunityPost(postID, input)
 }
 
+func (s *PlatformService) ListCommunityReports() []model.CommunityReport {
+	return s.repo.ListCommunityReports()
+}
+
 func (s *PlatformService) ListAdvisors() []model.AdvisorProfile {
 	return s.repo.ListAdvisors()
 }

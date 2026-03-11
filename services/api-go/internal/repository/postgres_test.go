@@ -123,6 +123,43 @@ func TestCreateAdvisorLeadPersistsToPostgres(t *testing.T) {
 	}
 }
 
+func TestListCommunityReportsReadsFromPostgres(t *testing.T) {
+	mock, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("pgxmock.NewPool() error = %v", err)
+	}
+	defer mock.Close()
+
+	repo := NewPostgresRepositoryWithPool(mock)
+
+	rows := pgxmock.NewRows([]string{"id", "post_id", "title", "office", "reason", "status", "created_at"}).
+		AddRow(
+			"report-001",
+			"post-001",
+			"臺北關相機批次看貨紀錄",
+			"臺北關",
+			"缺少看貨照片佐證",
+			"pending",
+			"2026-03-11T10:00:00Z",
+		)
+
+	mock.ExpectQuery("SELECT cr.id::text, cr.post_id::text, cp.title, cp.office, cr.reason, cr.status, cr.created_at::text").
+		WillReturnRows(rows)
+
+	result := repo.ListCommunityReports()
+
+	if len(result) != 1 {
+		t.Fatalf("len(result) = %d", len(result))
+	}
+	if result[0].PostTitle != "臺北關相機批次看貨紀錄" {
+		t.Fatalf("result[0].PostTitle = %q", result[0].PostTitle)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("ExpectationsWereMet() error = %v", err)
+	}
+}
+
 func TestIngestAuctionsPersistsAnnouncementAndLot(t *testing.T) {
 	mock, err := pgxmock.NewPool()
 	if err != nil {

@@ -22,6 +22,7 @@ type Repository interface {
 	ListCommunityPosts() []model.CommunityPost
 	CreateCommunityPost(input *dto.CommunityPostInput) model.CommunityPost
 	ReportCommunityPost(postID string, input *dto.ReportInput) model.CommunityReport
+	ListCommunityReports() []model.CommunityReport
 	ListAdvisors() []model.AdvisorProfile
 	CreateAdvisorLead(input *dto.AdvisorLeadInput) model.AdvisorLead
 	IngestAuctions(input *dto.IngestPayload) map[string]any
@@ -73,6 +74,9 @@ func NewMemoryRepository() *MemoryRepository {
 		},
 		posts: []model.CommunityPost{
 			{ID: "post-001", Title: "臺北關相機批次看貨紀錄", Body: "鏡頭外觀有明顯刮痕，建議實地複查。", Images: []string{}, Office: "臺北關", Author: "系統示例", Visible: true},
+		},
+		reports: []model.CommunityReport{
+			{ID: "report-001", PostID: "post-001", PostTitle: "臺北關相機批次看貨紀錄", Office: "臺北關", Reason: "缺少看貨照片佐證", Status: "pending", CreateAt: time.Now().Add(-2 * time.Hour).Format(time.RFC3339)},
 		},
 		advisors: []model.AdvisorProfile{
 			{ID: "advisor-001", Name: "王顧問", Specialty: "進口車標售", Description: "協助驗車與相關文件流程。"},
@@ -178,15 +182,31 @@ func (m *MemoryRepository) ReportCommunityPost(postID string, input *dto.ReportI
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	postTitle := ""
+	office := ""
+	for _, post := range m.posts {
+		if post.ID == postID {
+			postTitle = post.Title
+			office = post.Office
+			break
+		}
+	}
+
 	report := model.CommunityReport{
-		ID:       fmt.Sprintf("report-%d", len(m.reports)+1),
-		PostID:   postID,
-		Reason:   input.Reason,
-		Status:   "pending",
-		CreateAt: time.Now().Format(time.RFC3339),
+		ID:        fmt.Sprintf("report-%d", len(m.reports)+1),
+		PostID:    postID,
+		PostTitle: postTitle,
+		Office:    office,
+		Reason:    input.Reason,
+		Status:    "pending",
+		CreateAt:  time.Now().Format(time.RFC3339),
 	}
 	m.reports = append(m.reports, report)
 	return report
+}
+
+func (m *MemoryRepository) ListCommunityReports() []model.CommunityReport {
+	return append([]model.CommunityReport{}, m.reports...)
 }
 
 func (m *MemoryRepository) ListAdvisors() []model.AdvisorProfile {

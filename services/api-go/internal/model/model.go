@@ -46,11 +46,13 @@ type CommunityPost struct {
 }
 
 type CommunityReport struct {
-	ID       string `json:"id"`
-	PostID   string `json:"postId"`
-	Reason   string `json:"reason"`
-	Status   string `json:"status"`
-	CreateAt string `json:"createdAt"`
+	ID        string `json:"id"`
+	PostID    string `json:"postId"`
+	PostTitle string `json:"postTitle,omitempty"`
+	Office    string `json:"office,omitempty"`
+	Reason    string `json:"reason"`
+	Status    string `json:"status"`
+	CreateAt  string `json:"createdAt"`
 }
 
 type AdvisorProfile struct {
