@@ -428,6 +428,35 @@ func (p *PostgresRepository) ListCommunityReports() []model.CommunityReport {
 	return reports
 }
 
+func (p *PostgresRepository) ResolveCommunityReport(id string) (model.CommunityReport, bool) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	row := p.pool.QueryRow(ctx, `
+		UPDATE community_reports cr
+		SET status = 'resolved'
+		FROM community_posts cp
+		WHERE cr.id = $1::uuid
+		  AND cp.id = cr.post_id
+		RETURNING cr.id::text, cr.post_id::text, cp.title, cp.office, cr.reason, cr.status, cr.created_at::text
+	`, id)
+
+	var report model.CommunityReport
+	if err := row.Scan(
+		&report.ID,
+		&report.PostID,
+		&report.PostTitle,
+		&report.Office,
+		&report.Reason,
+		&report.Status,
+		&report.CreateAt,
+	); err != nil {
+		return p.memory.ResolveCommunityReport(id)
+	}
+
+	return report, true
+}
+
 func (p *PostgresRepository) ListAdvisors() []model.AdvisorProfile {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()

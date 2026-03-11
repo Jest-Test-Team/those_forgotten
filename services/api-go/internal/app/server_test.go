@@ -258,6 +258,22 @@ func TestListCommunityReports(t *testing.T) {
 	}
 }
 
+func TestResolveCommunityReport(t *testing.T) {
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/admin/community-reports/report-001/resolve", nil)
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
 func TestListCrawlerStatuses(t *testing.T) {
 	server, err := NewServer()
 	if err != nil {

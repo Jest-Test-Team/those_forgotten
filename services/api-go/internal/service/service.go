@@ -95,6 +95,10 @@ func (s *PlatformService) ListCommunityReports() []model.CommunityReport {
 	return s.repo.ListCommunityReports()
 }
 
+func (s *PlatformService) ResolveCommunityReport(id string) (model.CommunityReport, bool) {
+	return s.repo.ResolveCommunityReport(id)
+}
+
 func (s *PlatformService) ListAdvisors() []model.AdvisorProfile {
 	return s.repo.ListAdvisors()
 }

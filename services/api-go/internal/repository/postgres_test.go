@@ -160,6 +160,44 @@ func TestListCommunityReportsReadsFromPostgres(t *testing.T) {
 	}
 }
 
+func TestResolveCommunityReportUpdatesPostgres(t *testing.T) {
+	mock, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("pgxmock.NewPool() error = %v", err)
+	}
+	defer mock.Close()
+
+	repo := NewPostgresRepositoryWithPool(mock)
+
+	rows := pgxmock.NewRows([]string{"id", "post_id", "title", "office", "reason", "status", "created_at"}).
+		AddRow(
+			"report-001",
+			"post-001",
+			"臺北關相機批次看貨紀錄",
+			"臺北關",
+			"缺少看貨照片佐證",
+			"resolved",
+			"2026-03-11T10:00:00Z",
+		)
+
+	mock.ExpectQuery("UPDATE community_reports cr").
+		WithArgs("report-001").
+		WillReturnRows(rows)
+
+	result, ok := repo.ResolveCommunityReport("report-001")
+
+	if !ok {
+		t.Fatalf("expected report to resolve")
+	}
+	if result.Status != "resolved" {
+		t.Fatalf("result.Status = %q", result.Status)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("ExpectationsWereMet() error = %v", err)
+	}
+}
+
 func TestListAdvisorLeadsReadsFromPostgres(t *testing.T) {
 	mock, err := pgxmock.NewPool()
 	if err != nil {

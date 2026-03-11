@@ -35,6 +35,7 @@ func RegisterRoutes(e *echo.Echo, ctl *Controller) {
 	api.POST("/community/posts", ctl.CreateCommunityPost)
 	api.POST("/community/posts/:id/report", ctl.ReportCommunityPost)
 	api.GET("/admin/community-reports", ctl.ListCommunityReports)
+	api.POST("/admin/community-reports/:id/resolve", ctl.ResolveCommunityReport)
 	api.GET("/admin/crawler-status", ctl.ListCrawlerStatuses)
 	api.GET("/advisors", ctl.ListAdvisors)
 	api.GET("/admin/advisor-leads", ctl.ListAdvisorLeads)
@@ -153,6 +154,15 @@ func (ctl *Controller) ReportCommunityPost(c echo.Context) error {
 
 func (ctl *Controller) ListCommunityReports(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]any{"data": ctl.service.ListCommunityReports()})
+}
+
+func (ctl *Controller) ResolveCommunityReport(c echo.Context) error {
+	report, ok := ctl.service.ResolveCommunityReport(c.Param("id"))
+	if !ok {
+		return c.JSON(http.StatusNotFound, map[string]any{"error": "report not found"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]any{"data": report})
 }
 
 func (ctl *Controller) ListCrawlerStatuses(c echo.Context) error {

@@ -23,6 +23,7 @@ type Repository interface {
 	CreateCommunityPost(input *dto.CommunityPostInput) model.CommunityPost
 	ReportCommunityPost(postID string, input *dto.ReportInput) model.CommunityReport
 	ListCommunityReports() []model.CommunityReport
+	ResolveCommunityReport(id string) (model.CommunityReport, bool)
 	ListAdvisors() []model.AdvisorProfile
 	ListAdvisorLeads() []model.AdvisorLead
 	ListCrawlerStatuses() []model.CrawlerStatus
@@ -219,6 +220,21 @@ func (m *MemoryRepository) ReportCommunityPost(postID string, input *dto.ReportI
 
 func (m *MemoryRepository) ListCommunityReports() []model.CommunityReport {
 	return append([]model.CommunityReport{}, m.reports...)
+}
+
+func (m *MemoryRepository) ResolveCommunityReport(id string) (model.CommunityReport, bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	for index, report := range m.reports {
+		if report.ID == id {
+			report.Status = "resolved"
+			m.reports[index] = report
+			return report, true
+		}
+	}
+
+	return model.CommunityReport{}, false
 }
 
 func (m *MemoryRepository) ListAdvisors() []model.AdvisorProfile {
