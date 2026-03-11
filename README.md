@@ -25,6 +25,14 @@ cd services/api-go && go run ./cmd/api
 cd services/crawler && source .venv/bin/activate && python -m crawler.cli --fixtures fixtures
 ```
 
+## Docker Compose
+
+```bash
+docker compose up --build
+```
+
+This starts `postgres`, `redis`, `api`, `web`, and `crawler` with the demo ingestion token and internal service wiring.
+
 ## Local Stack
 
 ```bash
