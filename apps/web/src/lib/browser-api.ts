@@ -79,6 +79,10 @@ export function reportCommunityPost(postId: string, reason: string) {
   return postJson(`/v1/community/posts/${postId}/report`, { reason }, "檢舉已送出，管理員將進一步審核");
 }
 
+export function resolveCommunityReport(reportId: string) {
+  return postJson(`/v1/admin/community-reports/${reportId}/resolve`, {}, "檢舉狀態已更新為 resolved");
+}
+
 export function createWebPushSubscription(input: {
   endpoint: string;
   keys: {
