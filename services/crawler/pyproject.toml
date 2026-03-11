@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "customs-crawler"
+version = "0.1.0"
+description = "Crawler service for Taiwan customs auction notices"
+requires-python = ">=3.11"
+dependencies = [
+  "beautifulsoup4>=4.12.3",
+  "httpx>=0.28.1",
+  "playwright>=1.51.0"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.5"
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+include = ["crawler*"]
+exclude = ["fixtures*", "tests*"]
