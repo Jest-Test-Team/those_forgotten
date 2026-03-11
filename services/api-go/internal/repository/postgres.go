@@ -11,6 +11,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+var demoProfileID = uuid.NewSHA1(uuid.NameSpaceURL, []byte("customs-auction-platform-demo-profile"))
+
 type PostgresRepository struct {
 	pool   *pgxpool.Pool
 	memory *MemoryRepository
@@ -152,15 +154,60 @@ func (p *PostgresRepository) GetAuctionHistory(id string) []model.AuctionResult 
 }
 
 func (p *PostgresRepository) CreateKeywordSubscription(keyword string) model.KeywordSubscription {
-	return p.memory.CreateKeywordSubscription(keyword)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	if err := p.ensureDemoProfile(ctx); err != nil {
+		return p.memory.CreateKeywordSubscription(keyword)
+	}
+
+	id := uuid.New()
+	_, err := p.pool.Exec(ctx, `
+		INSERT INTO keyword_subscriptions (id, profile_id, keyword, created_at)
+		VALUES ($1, $2, $3, NOW())
+	`, id, demoProfileID, keyword)
+	if err != nil {
+		return p.memory.CreateKeywordSubscription(keyword)
+	}
+
+	return model.KeywordSubscription{
+		ID:      id.String(),
+		Keyword: keyword,
+	}
 }
 
 func (p *PostgresRepository) DeleteKeywordSubscription(id string) {
-	p.memory.DeleteKeywordSubscription(id)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := p.pool.Exec(ctx, `DELETE FROM keyword_subscriptions WHERE id = $1::uuid`, id)
+	if err != nil {
+		p.memory.DeleteKeywordSubscription(id)
+	}
 }
 
 func (p *PostgresRepository) CreateWebPushSubscription(input *dto.WebPushSubscriptionInput) map[string]any {
-	return p.memory.CreateWebPushSubscription(input)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	if err := p.ensureDemoProfile(ctx); err != nil {
+		return p.memory.CreateWebPushSubscription(input)
+	}
+
+	id := uuid.New()
+	_, err := p.pool.Exec(ctx, `
+		INSERT INTO web_push_subscriptions (id, profile_id, endpoint, p256dh, auth_secret, created_at)
+		VALUES ($1, $2, $3, $4, $5, NOW())
+	`, id, demoProfileID, input.Endpoint, input.Keys["p256dh"], input.Keys["auth"])
+	if err != nil {
+		return p.memory.CreateWebPushSubscription(input)
+	}
+
+	return map[string]any{
+		"id":       id.String(),
+		"endpoint": input.Endpoint,
+		"keys":     input.Keys,
+	}
 }
 
 func (p *PostgresRepository) GetKnowledgeArticle(slug string) (model.KnowledgeArticle, bool) {
@@ -271,7 +318,25 @@ func (p *PostgresRepository) CreateCommunityPost(input *dto.CommunityPostInput) 
 }
 
 func (p *PostgresRepository) ReportCommunityPost(postID string, input *dto.ReportInput) model.CommunityReport {
-	return p.memory.ReportCommunityPost(postID, input)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	id := uuid.New()
+	_, err := p.pool.Exec(ctx, `
+		INSERT INTO community_reports (id, post_id, reporter_profile_id, reason, status, created_at)
+		VALUES ($1, $2::uuid, NULL, $3, 'pending', NOW())
+	`, id, postID, input.Reason)
+	if err != nil {
+		return p.memory.ReportCommunityPost(postID, input)
+	}
+
+	return model.CommunityReport{
+		ID:       id.String(),
+		PostID:   postID,
+		Reason:   input.Reason,
+		Status:   "pending",
+		CreateAt: time.Now().Format(time.RFC3339),
+	}
 }
 
 func (p *PostgresRepository) ListAdvisors() []model.AdvisorProfile {
@@ -383,4 +448,13 @@ func (p *PostgresRepository) IngestAuctions(input *dto.IngestPayload) map[string
 		"checksum": input.Checksum,
 		"received": len(input.Rows),
 	}
+}
+
+func (p *PostgresRepository) ensureDemoProfile(ctx context.Context) error {
+	_, err := p.pool.Exec(ctx, `
+		INSERT INTO profiles (id, email, full_name, created_at, updated_at)
+		VALUES ($1, $2, $3, NOW(), NOW())
+		ON CONFLICT (id) DO NOTHING
+	`, demoProfileID, "demo@customs.local", "Demo Member")
+	return err
 }
