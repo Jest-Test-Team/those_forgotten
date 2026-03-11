@@ -1,12 +1,17 @@
 import { MemberConsole } from "@/components/member-console";
 import { Shell } from "@/components/shell";
-import { auctions, courses, historicalCoverageStart } from "@/lib/site-data";
+import { getAuctions, getCourses, historicalCoverageStart } from "@/lib/api";
 
 export const metadata = {
   title: "會員中心",
 };
 
-export default function MemberPage() {
+export default async function MemberPage() {
+  const [{ auctions, source: auctionSource }, { courses, source: courseSource }] = await Promise.all([
+    getAuctions(),
+    getCourses(),
+  ]);
+
   return (
     <Shell>
       <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
@@ -25,6 +30,10 @@ export default function MemberPage() {
             <div className="rounded-[1.5rem] border border-black/8 bg-white/60 p-5">
               <p className="font-semibold text-[color:var(--foreground)]">歷史資料涵蓋</p>
               <p className="mt-2">成交資料起算日：{historicalCoverageStart}</p>
+            </div>
+            <div className="rounded-[1.5rem] border border-black/8 bg-white/60 p-5">
+              <p className="font-semibold text-[color:var(--foreground)]">資料來源</p>
+              <p className="mt-2">標案：{auctionSource === "api" ? "API" : "Seed"} / 課程：{courseSource === "api" ? "API" : "Seed"}</p>
             </div>
           </div>
         </section>

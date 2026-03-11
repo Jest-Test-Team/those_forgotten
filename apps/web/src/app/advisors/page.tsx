@@ -1,12 +1,14 @@
 import { AdvisorLeadForm } from "@/components/advisor-lead-form";
 import { Shell } from "@/components/shell";
-import { advisors } from "@/lib/site-data";
+import { getAdvisors } from "@/lib/api";
 
 export const metadata = {
   title: "顧問媒合",
 };
 
-export default function AdvisorsPage() {
+export default async function AdvisorsPage() {
+  const { advisors, source } = await getAdvisors();
+
   return (
     <Shell>
       <section className="glass rounded-[2rem] p-8">
@@ -15,6 +17,7 @@ export default function AdvisorsPage() {
         <p className="mt-4 max-w-2xl text-lg leading-8 text-[color:var(--muted)]">
           v1 僅提供顧問名錄與需求表單，不處理站內私訊與金流。顧問資料為自我聲明，請自行驗證專業背景。
         </p>
+        <p className="mt-3 text-sm text-[color:var(--muted)]">目前資料來源：{source === "api" ? "即時 API" : "本地 seed fallback"}</p>
         <div className="mt-8 grid gap-4 md:grid-cols-2">
           {advisors.map((advisor) => (
             <article key={advisor.id} className="rounded-[1.5rem] border border-black/8 bg-white/60 p-6">

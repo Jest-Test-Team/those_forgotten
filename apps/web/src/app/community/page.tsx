@@ -1,12 +1,14 @@
 import { CommunityComposer } from "@/components/community-composer";
 import { Shell } from "@/components/shell";
-import { posts } from "@/lib/site-data";
+import { getCommunityPosts } from "@/lib/api";
 
 export const metadata = {
   title: "看貨心得",
 };
 
-export default function CommunityPage() {
+export default async function CommunityPage() {
+  const { posts, source } = await getCommunityPosts();
+
   return (
     <Shell>
       <section className="glass rounded-[2rem] p-8">
@@ -22,19 +24,20 @@ export default function CommunityPage() {
         <div className="mt-8 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
           <CommunityComposer />
           <div className="space-y-4">
-          {posts.map((post) => (
-            <article key={post.id} className="rounded-[1.5rem] border border-black/8 bg-white/60 p-6">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm text-[color:var(--muted)]">{post.office}</p>
-                  <h2 className="mt-2 text-2xl font-semibold">{post.title}</h2>
+            <p className="text-sm text-[color:var(--muted)]">目前資料來源：{source === "api" ? "即時 API" : "本地 seed fallback"}</p>
+            {posts.map((post) => (
+              <article key={post.id} className="rounded-[1.5rem] border border-black/8 bg-white/60 p-6">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm text-[color:var(--muted)]">{post.office}</p>
+                    <h2 className="mt-2 text-2xl font-semibold">{post.title}</h2>
+                  </div>
+                  <span className="rounded-full border border-black/10 px-3 py-1 text-sm">{post.author}</span>
                 </div>
-                <span className="rounded-full border border-black/10 px-3 py-1 text-sm">{post.author}</span>
-              </div>
-              <p className="mt-4 text-base leading-8 text-[color:var(--muted)]">{post.body}</p>
-              <div className="mt-4 text-sm text-[color:var(--warning)]">社群採先發後審，任何貼文都可檢舉並由管理員下架。</div>
-            </article>
-          ))}
+                <p className="mt-4 text-base leading-8 text-[color:var(--muted)]">{post.body}</p>
+                <div className="mt-4 text-sm text-[color:var(--warning)]">社群採先發後審，任何貼文都可檢舉並由管理員下架。</div>
+              </article>
+            ))}
           </div>
         </div>
       </section>
