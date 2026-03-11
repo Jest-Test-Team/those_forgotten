@@ -18,3 +18,4 @@ bin/
 vendor/
 tmp/
 *.log
+note.txt
