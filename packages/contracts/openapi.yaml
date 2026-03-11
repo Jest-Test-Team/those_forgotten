@@ -101,6 +101,22 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
   /v1/keyword-subscriptions:
+    get:
+      summary: List keyword subscriptions
+      operationId: listKeywordSubscriptions
+      responses:
+        "200":
+          description: Keyword subscriptions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/KeywordSubscription"
     post:
       summary: Create keyword subscription
       operationId: createKeywordSubscription
@@ -378,13 +394,15 @@ components:
       required: [data]
       properties:
         data:
-          type: object
-          required: [id, keyword]
-          properties:
-            id:
-              type: string
-            keyword:
-              type: string
+          $ref: "#/components/schemas/KeywordSubscription"
+    KeywordSubscription:
+      type: object
+      required: [id, keyword]
+      properties:
+        id:
+          type: string
+        keyword:
+          type: string
     WebPushSubscriptionInput:
       type: object
       required: [endpoint, keys]
