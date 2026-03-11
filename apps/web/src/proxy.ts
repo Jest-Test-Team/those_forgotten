@@ -3,7 +3,7 @@ import { updateSession } from "@/lib/supabase/middleware";
 
 const protectedPrefixes = ["/member", "/admin"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { response, supabase } = updateSession(request);
   const pathname = request.nextUrl.pathname;
 
