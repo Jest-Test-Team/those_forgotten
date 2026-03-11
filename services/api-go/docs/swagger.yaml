@@ -302,6 +302,33 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/CommunityReport"
+  /v1/admin/community-reports/{id}/resolve:
+    post:
+      summary: Resolve a moderation report
+      operationId: resolveCommunityReport
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Updated moderation report
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/CommunityReport"
+        "404":
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/admin/crawler-status:
     get:
       summary: List crawler office status
