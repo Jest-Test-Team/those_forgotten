@@ -2,6 +2,8 @@ import { AuthGate } from "@/components/auth-gate";
 import { ModerationQueue } from "@/components/moderation-queue";
 import { Shell } from "@/components/shell";
 import { getAdminDashboardData } from "@/lib/api";
+import { getServerAuthContext } from "@/lib/auth/server";
+import { redirect } from "next/navigation";
 
 const queues = [
   "爬蟲健康度與手動重抓",
@@ -16,6 +18,11 @@ export const metadata = {
 };
 
 export default async function AdminPage() {
+  const auth = await getServerAuthContext();
+  if (auth.enabled && auth.isAuthenticated && !auth.isAdmin) {
+    redirect("/member?denied=admin");
+  }
+
   const dashboard = await getAdminDashboardData();
 
   return (

@@ -1,13 +1,22 @@
 import { AuthGate } from "@/components/auth-gate";
 import { MemberConsole } from "@/components/member-console";
 import { Shell } from "@/components/shell";
+import { getServerAuthContext } from "@/lib/auth/server";
 import { getAuctions, getCourses, getKeywordSubscriptions, historicalCoverageStart } from "@/lib/api";
 
 export const metadata = {
   title: "會員中心",
 };
 
-export default async function MemberPage() {
+type Props = {
+  searchParams?: Promise<{
+    denied?: string;
+  }>;
+};
+
+export default async function MemberPage({ searchParams }: Props) {
+  const auth = await getServerAuthContext();
+  const params = (await searchParams) ?? {};
   const [
     { auctions, source: auctionSource },
     { courses, source: courseSource },
@@ -28,10 +37,19 @@ export default async function MemberPage() {
           <section className="glass rounded-[2rem] p-8">
             <p className="label">Member Console</p>
             <h1 className="mt-4 font-display text-4xl font-semibold">關鍵字推播、日曆整合與訂閱權限</h1>
+            {params.denied === "admin" ? (
+              <p className="mt-4 rounded-[1.25rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                目前登入帳號沒有管理後台權限。請將帳號 email 加入 `ADMIN_EMAILS` allowlist 後再重試。
+              </p>
+            ) : null}
             <div className="mt-6 space-y-4 text-sm leading-7 text-[color:var(--muted)]">
               <div className="rounded-[1.5rem] border border-black/8 bg-white/60 p-5">
                 <p className="font-semibold text-[color:var(--foreground)]">登入方式</p>
                 <p className="mt-2">Google OAuth 與 Email magic link。會員發文門檻為 Email 已驗證。</p>
+              </div>
+              <div className="rounded-[1.5rem] border border-black/8 bg-white/60 p-5">
+                <p className="font-semibold text-[color:var(--foreground)]">目前登入</p>
+                <p className="mt-2">{auth.email ?? "未提供 email"}</p>
               </div>
               <div className="rounded-[1.5rem] border border-black/8 bg-white/60 p-5">
                 <p className="font-semibold text-[color:var(--foreground)]">個人日曆</p>
