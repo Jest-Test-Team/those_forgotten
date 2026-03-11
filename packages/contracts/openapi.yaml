@@ -321,7 +321,7 @@ components:
   schemas:
     AuctionLot:
       type: object
-      required: [id, title, customsOffice, closingAt, disclaimers]
+      required: [id, title, customsOffice, closingAt, viewingAt, officialUrl, summary, disclaimers]
       properties:
         id:
           type: string
@@ -332,7 +332,14 @@ components:
         closingAt:
           type: string
           format: date-time
+        viewingAt:
+          type: string
+          format: date-time
         category:
+          type: string
+        officialUrl:
+          type: string
+        summary:
           type: string
         disclaimers:
           type: array

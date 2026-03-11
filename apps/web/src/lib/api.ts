@@ -14,7 +14,10 @@ type AuctionApiRecord = {
   title: string;
   customsOffice: string;
   closingAt: string;
+  viewingAt: string;
   category?: string;
+  officialUrl: string;
+  summary: string;
   disclaimers: string[];
 };
 
@@ -100,19 +103,17 @@ async function safeFetch<T>(path: string): Promise<T | null> {
 }
 
 function normalizeAuction(record: AuctionApiRecord): Auction {
-  const seedMatch = seedAuctions.find((item) => item.id === record.id);
-
   return {
     id: record.id,
     title: record.title,
     office: record.customsOffice,
     category: record.category ?? "未分類",
     closingAt: record.closingAt,
-    viewingAt: "詳見官方公告",
+    viewingAt: record.viewingAt,
     priceBand: "依公告與現場貨況估值",
     warnings: record.disclaimers,
-    officialUrl: seedMatch?.officialUrl ?? "/member",
-    summary: `${record.customsOffice} / ${record.category ?? "未分類"} 標案，請搭配官方文件與現場看貨判斷風險。`,
+    officialUrl: record.officialUrl,
+    summary: record.summary,
   };
 }
 

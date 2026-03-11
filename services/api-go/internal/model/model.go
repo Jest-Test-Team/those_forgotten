@@ -5,7 +5,10 @@ type AuctionLot struct {
 	Title         string   `json:"title"`
 	CustomsOffice string   `json:"customsOffice"`
 	ClosingAt     string   `json:"closingAt"`
+	ViewingAt     string   `json:"viewingAt"`
 	Category      string   `json:"category"`
+	OfficialURL   string   `json:"officialUrl"`
+	Summary       string   `json:"summary"`
 	Disclaimers   []string `json:"disclaimers"`
 }
 
