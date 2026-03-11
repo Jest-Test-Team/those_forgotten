@@ -59,6 +59,11 @@ type HealthResponse = {
   repository: string;
 };
 
+type KeywordSubscriptionApiRecord = {
+  id: string;
+  keyword: string;
+};
+
 export type AuctionHistory = {
   id: string;
   finalPrice: number;
@@ -80,6 +85,11 @@ export type AdminDashboardData = {
   courseCount: number;
   source: DataSource;
   backendHealth: HealthResponse;
+};
+
+export type KeywordSubscription = {
+  id: string;
+  keyword: string;
 };
 
 const defaultHistory: Record<string, AuctionHistory[]> = {
@@ -216,6 +226,27 @@ export async function getCourses(): Promise<{ courses: typeof seedCourses; sourc
       id: course.id,
       title: course.title,
       summary: course.description,
+    })),
+    source: "api",
+  };
+}
+
+export async function getKeywordSubscriptions(): Promise<{ subscriptions: KeywordSubscription[]; source: DataSource }> {
+  const response = await safeFetch<JsonEnvelope<KeywordSubscriptionApiRecord[]>>("/v1/keyword-subscriptions");
+  if (!response?.data?.length) {
+    return {
+      subscriptions: [
+        { id: "seed-sub-1", keyword: "相機" },
+        { id: "seed-sub-2", keyword: "進口車" },
+      ],
+      source: "seed",
+    };
+  }
+
+  return {
+    subscriptions: response.data.map((subscription) => ({
+      id: subscription.id,
+      keyword: subscription.keyword,
     })),
     source: "api",
   };

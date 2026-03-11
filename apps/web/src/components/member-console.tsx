@@ -5,8 +5,13 @@ import { createKeywordSubscription, createWebPushSubscription } from "@/lib/brow
 
 const keywordOptions = ["相機", "進口車", "名牌包", "原木"];
 
-export function MemberConsole() {
-  const [keywords, setKeywords] = useState<string[]>(["相機", "進口車"]);
+type Props = {
+  initialKeywords: string[];
+  sourceLabel: string;
+};
+
+export function MemberConsole({ initialKeywords, sourceLabel }: Props) {
+  const [keywords, setKeywords] = useState<string[]>(initialKeywords);
   const [draft, setDraft] = useState("");
   const [pushEnabled, setPushEnabled] = useState(false);
   const [message, setMessage] = useState("");
@@ -103,6 +108,7 @@ export function MemberConsole() {
         <p className="mt-4 text-sm text-[color:var(--muted)]">
           目前訂閱：{keywords.join("、")}。付費會員匹配新案時即時接收 Web Push。
         </p>
+        <p className="mt-2 text-xs text-[color:var(--muted)]">訂閱資料來源：{sourceLabel}</p>
         {message ? <p className="mt-3 text-sm text-[color:var(--accent)]">{message}</p> : null}
       </div>
 

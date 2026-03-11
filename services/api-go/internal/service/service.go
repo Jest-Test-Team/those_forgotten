@@ -44,6 +44,10 @@ func (s *PlatformService) CalendarFeed() string {
 	}, "\r\n")
 }
 
+func (s *PlatformService) ListKeywordSubscriptions() []model.KeywordSubscription {
+	return s.repo.ListKeywordSubscriptions()
+}
+
 func (s *PlatformService) CreateKeywordSubscription(keyword string) model.KeywordSubscription {
 	return s.repo.CreateKeywordSubscription(keyword)
 }

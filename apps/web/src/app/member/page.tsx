@@ -1,15 +1,20 @@
 import { MemberConsole } from "@/components/member-console";
 import { Shell } from "@/components/shell";
-import { getAuctions, getCourses, historicalCoverageStart } from "@/lib/api";
+import { getAuctions, getCourses, getKeywordSubscriptions, historicalCoverageStart } from "@/lib/api";
 
 export const metadata = {
   title: "會員中心",
 };
 
 export default async function MemberPage() {
-  const [{ auctions, source: auctionSource }, { courses, source: courseSource }] = await Promise.all([
+  const [
+    { auctions, source: auctionSource },
+    { courses, source: courseSource },
+    { subscriptions, source: subscriptionSource },
+  ] = await Promise.all([
     getAuctions(),
     getCourses(),
+    getKeywordSubscriptions(),
   ]);
 
   return (
@@ -38,7 +43,10 @@ export default async function MemberPage() {
           </div>
         </section>
         <section className="grid gap-6">
-          <MemberConsole />
+          <MemberConsole
+            initialKeywords={subscriptions.map((subscription) => subscription.keyword)}
+            sourceLabel={subscriptionSource === "api" ? "API" : "Seed"}
+          />
           <div className="glass rounded-[2rem] p-6">
             <p className="label">已追蹤標案</p>
             <div className="mt-4 space-y-3">

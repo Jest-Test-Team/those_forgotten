@@ -13,6 +13,7 @@ type Repository interface {
 	ListAuctions() []model.AuctionLot
 	GetAuction(id string) (model.AuctionLot, bool)
 	GetAuctionHistory(id string) []model.AuctionResult
+	ListKeywordSubscriptions() []model.KeywordSubscription
 	CreateKeywordSubscription(keyword string) model.KeywordSubscription
 	DeleteKeywordSubscription(id string)
 	CreateWebPushSubscription(input *dto.WebPushSubscriptionInput) map[string]any
@@ -76,6 +77,10 @@ func NewMemoryRepository() *MemoryRepository {
 		advisors: []model.AdvisorProfile{
 			{ID: "advisor-001", Name: "王顧問", Specialty: "進口車標售", Description: "協助驗車與相關文件流程。"},
 		},
+		subs: []model.KeywordSubscription{
+			{ID: "sub-1", Keyword: "相機"},
+			{ID: "sub-2", Keyword: "進口車"},
+		},
 	}
 }
 
@@ -95,6 +100,10 @@ func (m *MemoryRepository) GetAuction(id string) (model.AuctionLot, bool) {
 
 func (m *MemoryRepository) GetAuctionHistory(id string) []model.AuctionResult {
 	return m.history[id]
+}
+
+func (m *MemoryRepository) ListKeywordSubscriptions() []model.KeywordSubscription {
+	return append([]model.KeywordSubscription{}, m.subs...)
 }
 
 func (m *MemoryRepository) CreateKeywordSubscription(keyword string) model.KeywordSubscription {

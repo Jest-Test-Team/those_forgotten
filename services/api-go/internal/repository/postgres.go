@@ -170,6 +170,38 @@ func (p *PostgresRepository) GetAuctionHistory(id string) []model.AuctionResult 
 	return results
 }
 
+func (p *PostgresRepository) ListKeywordSubscriptions() []model.KeywordSubscription {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := p.pool.Query(ctx, `
+		SELECT id::text, keyword
+		FROM keyword_subscriptions
+		WHERE profile_id = $1
+		ORDER BY created_at DESC
+		LIMIT 20
+	`, demoProfileID)
+	if err != nil {
+		return p.memory.ListKeywordSubscriptions()
+	}
+	defer rows.Close()
+
+	subs := []model.KeywordSubscription{}
+	for rows.Next() {
+		var sub model.KeywordSubscription
+		if err := rows.Scan(&sub.ID, &sub.Keyword); err != nil {
+			return p.memory.ListKeywordSubscriptions()
+		}
+		subs = append(subs, sub)
+	}
+
+	if len(subs) == 0 {
+		return p.memory.ListKeywordSubscriptions()
+	}
+
+	return subs
+}
+
 func (p *PostgresRepository) CreateKeywordSubscription(keyword string) model.KeywordSubscription {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
