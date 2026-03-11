@@ -5,6 +5,17 @@ info:
 servers:
   - url: http://localhost:8080
 paths:
+  /healthz:
+    get:
+      summary: Service health check
+      operationId: getHealth
+      responses:
+        "200":
+          description: Health payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
   /v1/auctions:
     get:
       summary: List auction lots
@@ -581,4 +592,12 @@ components:
       required: [error]
       properties:
         error:
+          type: string
+    HealthResponse:
+      type: object
+      required: [status, repository]
+      properties:
+        status:
+          type: string
+        repository:
           type: string
