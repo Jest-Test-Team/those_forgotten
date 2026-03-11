@@ -100,6 +100,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /v1/auth/context:
+    get:
+      summary: Resolve auth role context
+      operationId: getAuthContext
+      parameters:
+        - in: query
+          name: email
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Auth context
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AuthContext"
   /v1/keyword-subscriptions:
     get:
       summary: List keyword subscriptions
@@ -461,6 +482,20 @@ components:
         recordedAt:
           type: string
           format: date-time
+    AuthContext:
+      type: object
+      required: [role, capabilities, source]
+      properties:
+        email:
+          type: string
+        role:
+          type: string
+        capabilities:
+          type: array
+          items:
+            type: string
+        source:
+          type: string
     KeywordSubscriptionInput:
       type: object
       required: [keyword]
