@@ -1,3 +1,4 @@
+import { CommunityComposer } from "@/components/community-composer";
 import { Shell } from "@/components/shell";
 import { posts } from "@/lib/site-data";
 
@@ -18,7 +19,9 @@ export default function CommunityPage() {
             發文資格：Email 已驗證會員
           </div>
         </div>
-        <div className="mt-8 space-y-4">
+        <div className="mt-8 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+          <CommunityComposer />
+          <div className="space-y-4">
           {posts.map((post) => (
             <article key={post.id} className="rounded-[1.5rem] border border-black/8 bg-white/60 p-6">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -32,6 +35,7 @@ export default function CommunityPage() {
               <div className="mt-4 text-sm text-[color:var(--warning)]">社群採先發後審，任何貼文都可檢舉並由管理員下架。</div>
             </article>
           ))}
+          </div>
         </div>
       </section>
     </Shell>

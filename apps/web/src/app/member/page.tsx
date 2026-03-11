@@ -1,3 +1,4 @@
+import { MemberConsole } from "@/components/member-console";
 import { Shell } from "@/components/shell";
 import { auctions, courses, historicalCoverageStart } from "@/lib/site-data";
 
@@ -28,17 +29,7 @@ export default function MemberPage() {
           </div>
         </section>
         <section className="grid gap-6">
-          <div className="glass rounded-[2rem] p-6">
-            <p className="label">推播訂閱</p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              {["相機", "進口車", "名牌包", "原木"].map((keyword) => (
-                <span key={keyword} className="rounded-full bg-[#17342d] px-4 py-2 text-sm text-white">
-                  {keyword}
-                </span>
-              ))}
-            </div>
-            <p className="mt-4 text-sm text-[color:var(--muted)]">付費會員可建立多組關鍵字與分類條件，匹配新案時即時接收 Web Push。</p>
-          </div>
+          <MemberConsole />
           <div className="glass rounded-[2rem] p-6">
             <p className="label">已追蹤標案</p>
             <div className="mt-4 space-y-3">

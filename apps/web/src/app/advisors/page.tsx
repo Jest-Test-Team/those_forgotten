@@ -1,3 +1,4 @@
+import { AdvisorLeadForm } from "@/components/advisor-lead-form";
 import { Shell } from "@/components/shell";
 import { advisors } from "@/lib/site-data";
 
@@ -22,10 +23,8 @@ export default function AdvisorsPage() {
               <p className="mt-3 text-base leading-8 text-[color:var(--muted)]">{advisor.note}</p>
               <div className="mt-5 flex items-center justify-between">
                 <span className="text-sm text-[color:var(--accent)]">{advisor.responseTime}</span>
-                <button className="rounded-full bg-[color:var(--accent)] px-4 py-2 text-sm font-medium text-white">
-                  提交需求
-                </button>
               </div>
+              <AdvisorLeadForm advisorName={advisor.name} />
             </article>
           ))}
         </div>
