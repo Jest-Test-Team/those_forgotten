@@ -1,4 +1,5 @@
 import { CommunityComposer } from "@/components/community-composer";
+import { ReportPostButton } from "@/components/report-post-button";
 import { Shell } from "@/components/shell";
 import { getCommunityPosts } from "@/lib/api";
 
@@ -35,7 +36,7 @@ export default async function CommunityPage() {
                   <span className="rounded-full border border-black/10 px-3 py-1 text-sm">{post.author}</span>
                 </div>
                 <p className="mt-4 text-base leading-8 text-[color:var(--muted)]">{post.body}</p>
-                <div className="mt-4 text-sm text-[color:var(--warning)]">社群採先發後審，任何貼文都可檢舉並由管理員下架。</div>
+                <ReportPostButton postId={post.id} />
               </article>
             ))}
           </div>

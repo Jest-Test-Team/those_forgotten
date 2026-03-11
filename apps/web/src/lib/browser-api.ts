@@ -45,6 +45,10 @@ export function createCommunityPost(input: { title: string; body: string; office
   return postJson("/v1/community/posts", input, "貼文已送出並進入公開列表");
 }
 
+export function reportCommunityPost(postId: string, reason: string) {
+  return postJson(`/v1/community/posts/${postId}/report`, { reason }, "檢舉已送出，管理員將進一步審核");
+}
+
 export function createWebPushSubscription(input: {
   endpoint: string;
   keys: {
