@@ -50,3 +50,8 @@ make sync-contracts
 ```
 
 This copies `packages/contracts/openapi.yaml` to `services/api-go/docs/swagger.yaml`.
+
+## Deployment
+
+- Deployment assessment and rollout plan: `docs/deployment-plan.md`
+- Terraform scaffold: `infra/terraform`
