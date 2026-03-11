@@ -55,6 +55,47 @@ export default async function AdminPage() {
             </div>
           ))}
         </div>
+        <div className="mt-8 grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
+          <section className="rounded-[1.5rem] border border-black/8 bg-white/70 p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="label">Moderation Queue</p>
+                <h2 className="mt-2 text-2xl font-semibold">社群檢舉待處理清單</h2>
+              </div>
+              <p className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-900">
+                {dashboard.moderationReports.length} pending
+              </p>
+            </div>
+            <div className="mt-5 space-y-3">
+              {dashboard.moderationReports.map((report) => (
+                <article key={report.id} className="rounded-[1.25rem] border border-black/8 bg-white p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm text-[color:var(--muted)]">{report.office}</p>
+                      <h3 className="mt-1 text-lg font-semibold">{report.postTitle}</h3>
+                    </div>
+                    <p className="rounded-full bg-rose-100 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-rose-900">
+                      {report.status}
+                    </p>
+                  </div>
+                  <p className="mt-3 text-sm leading-7 text-[color:var(--muted)]">{report.reason}</p>
+                  <p className="mt-3 text-xs text-[color:var(--muted)]">
+                    檢舉時間 {new Date(report.createdAt).toLocaleString("zh-TW", { hour12: false })}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+          <section className="rounded-[1.5rem] border border-black/8 bg-white/70 p-6">
+            <p className="label">Operations Notes</p>
+            <h2 className="mt-2 text-2xl font-semibold">審核規則</h2>
+            <ul className="mt-4 space-y-3 text-sm leading-7 text-[color:var(--muted)]">
+              <li>所有檢舉需保留操作審計記錄，避免誤刪與後續爭議。</li>
+              <li>高風險品項頁面必須同步顯示官方連結、免責聲明與特殊資格標籤。</li>
+              <li>若內容涉及實拍圖，優先確認是否有誤導標題或缺少看貨依據。</li>
+            </ul>
+          </section>
+        </div>
       </section>
     </Shell>
   );

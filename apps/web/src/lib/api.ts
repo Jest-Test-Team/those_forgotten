@@ -64,10 +64,30 @@ type KeywordSubscriptionApiRecord = {
   keyword: string;
 };
 
+type CommunityReportApiRecord = {
+  id: string;
+  postId: string;
+  postTitle?: string;
+  office?: string;
+  reason: string;
+  status: string;
+  createdAt: string;
+};
+
 export type AuctionHistory = {
   id: string;
   finalPrice: number;
   recordedAt: string;
+};
+
+export type CommunityModerationReport = {
+  id: string;
+  postId: string;
+  postTitle: string;
+  office: string;
+  reason: string;
+  status: string;
+  createdAt: string;
 };
 
 export type HomeData = {
@@ -83,6 +103,7 @@ export type AdminDashboardData = {
   communityPostCount: number;
   advisorCount: number;
   courseCount: number;
+  moderationReports: CommunityModerationReport[];
   source: DataSource;
   backendHealth: HealthResponse;
 };
@@ -278,11 +299,12 @@ export async function getHomeData(): Promise<HomeData> {
 }
 
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
-  const [auctionResult, postResult, advisorResult, courseResult] = await Promise.all([
+  const [auctionResult, postResult, advisorResult, courseResult, moderationResult] = await Promise.all([
     getAuctions(),
     getCommunityPosts(),
     getAdvisors(),
     getCourses(),
+    safeFetch<JsonEnvelope<CommunityReportApiRecord[]>>("/v1/admin/community-reports"),
   ]);
   const health = await safeFetch<HealthResponse>("/healthz");
 
@@ -291,6 +313,28 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     communityPostCount: postResult.posts.length,
     advisorCount: advisorResult.advisors.length,
     courseCount: courseResult.courses.length,
+    moderationReports:
+      moderationResult?.data?.length
+        ? moderationResult.data.map((report) => ({
+            id: report.id,
+            postId: report.postId,
+            postTitle: report.postTitle ?? "待查貼文",
+            office: report.office ?? "未標記關別",
+            reason: report.reason,
+            status: report.status,
+            createdAt: report.createdAt,
+          }))
+        : [
+            {
+              id: "seed-report-001",
+              postId: "post-001",
+              postTitle: "臺北關相機批次看貨紀錄",
+              office: "臺北關",
+              reason: "缺少看貨照片佐證",
+              status: "pending",
+              createdAt: "2026-03-11T10:00:00Z",
+            },
+          ],
     source:
       auctionResult.source === "api" ||
       postResult.source === "api" ||
