@@ -319,6 +319,23 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/AdvisorProfile"
+  /v1/admin/advisor-leads:
+    get:
+      summary: List advisor lead queue
+      operationId: listAdvisorLeads
+      responses:
+        "200":
+          description: Advisor leads
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdvisorLead"
   /v1/advisor-leads:
     post:
       summary: Create advisor lead
@@ -578,12 +595,19 @@ components:
           type: string
         advisorId:
           type: string
+        advisorName:
+          type: string
         name:
           type: string
         email:
           type: string
         message:
           type: string
+        category:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
     IngestPayload:
       type: object
       required: [source, checksum, rows]
