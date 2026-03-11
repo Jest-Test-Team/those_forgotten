@@ -133,6 +133,10 @@ func (s *PlatformService) GetAuthContext(email string) model.AuthContext {
 		return context
 	}
 
+	if resolved, ok := s.repo.ResolveAuthContext(normalized); ok {
+		return resolved
+	}
+
 	context.Role = "member"
 	context.Capabilities = []string{"browse", "member"}
 

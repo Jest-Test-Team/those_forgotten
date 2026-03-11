@@ -615,6 +615,40 @@ func (p *PostgresRepository) IngestAuctions(input *dto.IngestPayload) map[string
 	}
 }
 
+func (p *PostgresRepository) ResolveAuthContext(email string) (model.AuthContext, bool) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var normalizedEmail string
+	var isAdmin bool
+	err := p.pool.QueryRow(ctx, `
+		SELECT LOWER(p.email), EXISTS(
+			SELECT 1
+			FROM user_roles ur
+			WHERE ur.profile_id = p.id
+			  AND ur.role = 'admin'
+		)
+		FROM profiles p
+		WHERE LOWER(p.email) = LOWER($1)
+	`, email).Scan(&normalizedEmail, &isAdmin)
+	if err != nil {
+		return model.AuthContext{}, false
+	}
+
+	context := model.AuthContext{
+		Email:        normalizedEmail,
+		Role:         "member",
+		Capabilities: []string{"browse", "member"},
+		Source:       "db-user-roles",
+	}
+	if isAdmin {
+		context.Role = "admin"
+		context.Capabilities = []string{"browse", "member", "admin"}
+	}
+
+	return context, true
+}
+
 func (p *PostgresRepository) ensureDemoProfile(ctx context.Context) error {
 	_, err := p.pool.Exec(ctx, `
 		INSERT INTO profiles (id, email, full_name, created_at, updated_at)

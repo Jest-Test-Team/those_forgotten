@@ -236,6 +236,39 @@ func TestListAdvisorLeadsReadsFromPostgres(t *testing.T) {
 	}
 }
 
+func TestResolveAuthContextReadsUserRolesFromPostgres(t *testing.T) {
+	mock, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("pgxmock.NewPool() error = %v", err)
+	}
+	defer mock.Close()
+
+	repo := NewPostgresRepositoryWithPool(mock)
+
+	rows := pgxmock.NewRows([]string{"email", "is_admin"}).
+		AddRow("admin@example.com", true)
+
+	mock.ExpectQuery("SELECT LOWER\\(p.email\\), EXISTS\\(").
+		WithArgs("admin@example.com").
+		WillReturnRows(rows)
+
+	result, ok := repo.ResolveAuthContext("admin@example.com")
+
+	if !ok {
+		t.Fatalf("expected auth context to resolve")
+	}
+	if result.Role != "admin" {
+		t.Fatalf("result.Role = %q", result.Role)
+	}
+	if result.Source != "db-user-roles" {
+		t.Fatalf("result.Source = %q", result.Source)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("ExpectationsWereMet() error = %v", err)
+	}
+}
+
 func TestIngestAuctionsPersistsAnnouncementAndLot(t *testing.T) {
 	mock, err := pgxmock.NewPool()
 	if err != nil {

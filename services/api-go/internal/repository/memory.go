@@ -29,6 +29,7 @@ type Repository interface {
 	ListCrawlerStatuses() []model.CrawlerStatus
 	CreateAdvisorLead(input *dto.AdvisorLeadInput) model.AdvisorLead
 	IngestAuctions(input *dto.IngestPayload) map[string]any
+	ResolveAuthContext(email string) (model.AuthContext, bool)
 }
 
 type MemoryRepository struct {
@@ -284,4 +285,8 @@ func (m *MemoryRepository) IngestAuctions(input *dto.IngestPayload) map[string]a
 		"checksum": input.Checksum,
 		"received": len(input.Rows),
 	}
+}
+
+func (m *MemoryRepository) ResolveAuthContext(email string) (model.AuthContext, bool) {
+	return model.AuthContext{}, false
 }
