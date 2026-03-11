@@ -47,6 +47,10 @@ func TestHealthzIncludesRepositoryMode(t *testing.T) {
 	if payload["repository"] == "" {
 		t.Fatalf("expected repository mode in payload")
 	}
+
+	if payload["status"] != "ok" {
+		t.Fatalf("expected ok status, got %q", payload["status"])
+	}
 }
 
 func TestIngestAuctionsRequiresToken(t *testing.T) {
@@ -179,6 +183,23 @@ func TestCreateAdvisorLead(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/advisor-leads", bytes.NewBufferString(`{"advisor_id":"advisor-001","name":"會員","email":"member@example.com","message":"需要代標協助"}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
+func TestReportCommunityPost(t *testing.T) {
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/community/posts/post-001/report", bytes.NewBufferString(`{"reason":"疑似內容不實"}`))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
 
