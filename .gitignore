@@ -13,6 +13,7 @@ test-results/
 .venv/
 __pycache__/
 *.pyc
+*.egg-info/
 bin/
 vendor/
 tmp/

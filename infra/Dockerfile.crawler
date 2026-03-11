@@ -1,0 +1,11 @@
+FROM python:3.13-slim
+WORKDIR /app
+
+COPY services/crawler/pyproject.toml ./
+COPY services/crawler/README.md ./
+COPY services/crawler/crawler ./crawler
+COPY services/crawler/fixtures ./fixtures
+
+RUN pip install --no-cache-dir -e .
+
+CMD ["python", "-m", "crawler.cli", "--fixtures", "fixtures"]
