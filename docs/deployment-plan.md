@@ -60,6 +60,7 @@ For this repo, I would not treat free Koyeb as a durable "always-on API plus alw
   - Postgres
   - Storage
 - Deploy `services/api-go` to Koyeb Starter
+- Set `SUPABASE_JWT_SECRET` on the API deployment so admin routes can verify Supabase Bearer tokens instead of trusting caller-provided identity
 - Run `make grant-role` against the production database to create the first DB-backed admin role
 - Keep crawler fixture/manual in dev until API + DB env is stable
 

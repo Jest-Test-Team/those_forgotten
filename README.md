@@ -60,4 +60,5 @@ This copies `packages/contracts/openapi.yaml` to `services/api-go/docs/swagger.y
 ## Deployment
 
 - Deployment assessment and rollout plan: `docs/deployment-plan.md`
+- Detailed progress estimate: `docs/progress-estimation.md`
 - Terraform scaffold: `infra/terraform`

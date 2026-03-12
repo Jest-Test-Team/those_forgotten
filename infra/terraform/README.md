@@ -29,6 +29,7 @@ terraform plan
 - `supabase_access_token`
 - `supabase_organization_id`
 - `supabase_region`
+- `supabase_jwt_secret`
 - `koyeb_token`
 - `koyeb_org_id`
 
@@ -44,3 +45,5 @@ DATABASE_URL=postgres://... EMAIL=admin@example.com ROLE=admin make grant-role
 ```
 
 `ADMIN_EMAILS` remains in the web deployment as an emergency fallback, but the preferred path is now DB-backed `user_roles`.
+
+`SUPABASE_JWT_SECRET` must also be set on `services/api-go` so admin API routes can verify Supabase Bearer tokens.

@@ -97,6 +97,12 @@ variable "internal_ingest_token" {
   description = "Shared secret for crawler -> API ingest."
 }
 
+variable "supabase_jwt_secret" {
+  type        = string
+  sensitive   = true
+  description = "JWT secret used by api-go to verify Supabase access tokens."
+}
+
 variable "web_origin" {
   type        = string
   default     = "https://customs-auction.example.com"

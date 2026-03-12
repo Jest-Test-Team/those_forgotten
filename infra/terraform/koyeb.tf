@@ -48,6 +48,11 @@ resource "koyeb_service" "api" {
       value = var.internal_ingest_token
     }
 
+    env {
+      key   = "SUPABASE_JWT_SECRET"
+      value = var.supabase_jwt_secret
+    }
+
     image = var.api_image
   }
 }
