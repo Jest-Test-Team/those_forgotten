@@ -89,3 +89,17 @@ type AuthContext struct {
 	Capabilities []string `json:"capabilities"`
 	Source       string   `json:"source"`
 }
+
+type NotificationJob struct {
+	ID          string `json:"id"`
+	AuctionLotID string `json:"auctionLotId"`
+	Keyword     string `json:"keyword"`
+	Endpoint    string `json:"endpoint"`
+	P256DH      string `json:"p256dh"`
+	AuthSecret  string `json:"authSecret"`
+	Payload     string `json:"payload"`
+	Status      string `json:"status"`
+	LastError   string `json:"lastError,omitempty"`
+	CreatedAt   string `json:"createdAt"`
+	DeliveredAt string `json:"deliveredAt,omitempty"`
+}
