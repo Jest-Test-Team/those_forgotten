@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -188,7 +190,12 @@ func main() {
 
 func mustExec(ctx context.Context, tx pgx.Tx, sql string, args ...any) {
 	if _, err := tx.Exec(ctx, sql, args...); err != nil {
-		fmt.Fprintf(os.Stderr, "seed exec failed: %v\nsql: %s\n", err, strings.TrimSpace(sql))
+		message := fmt.Sprintf("seed exec failed: %v\nsql: %s\n", err, strings.TrimSpace(sql))
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "42P01" {
+			message += "\nhint: database schema is missing. Run `go run ./cmd/migrate up` or `make migrate-up` first.\n"
+		}
+		fmt.Fprint(os.Stderr, message)
 		os.Exit(1)
 	}
 }

@@ -1,6 +1,6 @@
 SHELL := /bin/zsh
 
-.PHONY: bootstrap dev lint test typecheck api-test crawler-test web-test rust-check robot-bootstrap robot-live-test sync-contracts stack-build stack-up stack-web stack-logs stack-streaming-up stack-streaming-logs stack-prod-config stack-prod-up stack-prod-logs stack-down api-dev crawler-dev crawler-post-fixtures grant-role seed-db notify-worker smoke-check
+.PHONY: bootstrap dev lint test typecheck api-test crawler-test web-test rust-check robot-bootstrap robot-live-test sync-contracts stack-build stack-up stack-web stack-logs stack-streaming-up stack-streaming-logs stack-prod-config stack-prod-up stack-prod-logs stack-down api-dev crawler-dev crawler-post-fixtures migrate-up migrate-status grant-role seed-db notify-worker smoke-check
 
 bootstrap:
 	corepack pnpm install
@@ -86,11 +86,17 @@ crawler-dev:
 crawler-post-fixtures:
 	cd services/crawler && . .venv/bin/activate && python -m crawler.cli --fixtures fixtures --post --endpoint $${INGEST_ENDPOINT:-http://localhost:8080/internal/ingest/auctions} --token $${INTERNAL_INGEST_TOKEN:-demo-token}
 
+migrate-up:
+	cd services/api-go && DATABASE_URL=$${DATABASE_URL:?set DATABASE_URL} go run ./cmd/migrate up
+
+migrate-status:
+	cd services/api-go && DATABASE_URL=$${DATABASE_URL:?set DATABASE_URL} go run ./cmd/migrate status
+
 grant-role:
 	cd services/api-go && DATABASE_URL=$${DATABASE_URL:?set DATABASE_URL} go run ./cmd/grant-role --email $${EMAIL:?set EMAIL} --role $${ROLE:-admin} --name "$${NAME:-}"
 
 seed-db:
-	cd services/api-go && DATABASE_URL=$${DATABASE_URL:?set DATABASE_URL} go run ./cmd/seed
+	cd services/api-go && DATABASE_URL=$${DATABASE_URL:?set DATABASE_URL} go run ./cmd/migrate up && DATABASE_URL=$${DATABASE_URL:?set DATABASE_URL} go run ./cmd/seed
 
 notify-worker:
 	cd services/api-go && DATABASE_URL=$${DATABASE_URL:?set DATABASE_URL} NOTIFICATION_BATCH_SIZE=$${NOTIFICATION_BATCH_SIZE:-20} go run ./cmd/notify-worker

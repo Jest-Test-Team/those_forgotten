@@ -91,6 +91,15 @@ DATABASE_URL=postgresql://postgres.mluxmwdbjunrqgyuqizn:YOUR_PASSWORD@aws-1-ap-s
 DATABASE_URL=postgresql://postgres.mluxmwdbjunrqgyuqizn:YOUR_PASSWORD@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require make seed-db
 ```
 
+Manual migration helpers:
+
+```bash
+DATABASE_URL=postgresql://postgres.mluxmwdbjunrqgyuqizn:YOUR_PASSWORD@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require make migrate-up
+DATABASE_URL=postgresql://postgres.mluxmwdbjunrqgyuqizn:YOUR_PASSWORD@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require make migrate-status
+```
+
+If `go run ./cmd/seed` reports `relation "profiles" does not exist`, the schema has not been migrated yet.
+
 ## Notifications Worker
 
 ```bash
@@ -125,6 +134,7 @@ Swagger UI for API testing is exposed by `api-go` at:
 - Backend evolution guide: `packages/docs/backend-evolution.md`
 - Hosted secrets checklist: `packages/docs/secrets-checklist.md`
 - Swagger testing guide: `packages/docs/swagger-testing.md`
+- Database bootstrap guide: `packages/docs/database-bootstrap.md`
 - Terraform scaffold: `infra/terraform`
 
 
