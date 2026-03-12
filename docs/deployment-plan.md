@@ -38,6 +38,7 @@ Caveats:
 - Fits the Echo API shape well
 - Works with Docker image deploys and env-driven config
 - Simpler than running a whole VPS for one API service
+- When deploying directly from GitHub in Koyeb UI, use the Dockerfile builder with `infra/Dockerfile.api`; do not use Buildpack with a Dockerfile path as a custom build command
 
 ### Koyeb for `crawler`
 
