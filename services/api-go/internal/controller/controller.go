@@ -1,21 +1,28 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/dto"
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/service"
+	"github.com/golang-jwt/jwt/v5"
 	echo "github.com/labstack/echo/v4"
 )
 
 type Controller struct {
 	service     *service.PlatformService
 	ingestToken string
+	jwtSecret   []byte
 }
 
-func New(service *service.PlatformService, ingestToken string) *Controller {
-	return &Controller{service: service, ingestToken: ingestToken}
+func New(service *service.PlatformService, ingestToken string, jwtSecret string) *Controller {
+	return &Controller{
+		service:     service,
+		ingestToken: ingestToken,
+		jwtSecret:   []byte(strings.TrimSpace(jwtSecret)),
+	}
 }
 
 func RegisterRoutes(e *echo.Echo, ctl *Controller) {
@@ -73,16 +80,60 @@ func (ctl *Controller) GetCalendarFeed(c echo.Context) error {
 }
 
 func (ctl *Controller) GetAuthContext(c echo.Context) error {
-	return c.JSON(http.StatusOK, map[string]any{"data": ctl.service.GetAuthContext(c.QueryParam("email"))})
+	return c.JSON(http.StatusOK, map[string]any{"data": ctl.service.GetAuthContext(ctl.actorEmail(c))})
+}
+
+func (ctl *Controller) actorEmailFromBearer(c echo.Context) (string, bool) {
+	if len(ctl.jwtSecret) == 0 {
+		return "", false
+	}
+
+	authHeader := strings.TrimSpace(c.Request().Header.Get("Authorization"))
+	if authHeader == "" {
+		return "", false
+	}
+
+	scheme, tokenString, ok := strings.Cut(authHeader, " ")
+	if !ok || !strings.EqualFold(scheme, "Bearer") || strings.TrimSpace(tokenString) == "" {
+		return "", false
+	}
+
+	token, err := jwt.Parse(strings.TrimSpace(tokenString), func(token *jwt.Token) (any, error) {
+		if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+			return nil, errors.New("unexpected signing method")
+		}
+
+		return ctl.jwtSecret, nil
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
+	if err != nil || !token.Valid {
+		return "", false
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", false
+	}
+
+	email, ok := claims["email"].(string)
+	if !ok {
+		return "", false
+	}
+
+	normalized := strings.TrimSpace(strings.ToLower(email))
+	return normalized, normalized != ""
 }
 
 func (ctl *Controller) actorEmail(c echo.Context) string {
-	headerEmail := strings.TrimSpace(c.Request().Header.Get("X-Actor-Email"))
-	if headerEmail != "" {
-		return headerEmail
+	if bearerEmail, ok := ctl.actorEmailFromBearer(c); ok {
+		return bearerEmail
 	}
 
-	return c.QueryParam("email")
+	headerEmail := strings.TrimSpace(c.Request().Header.Get("X-Actor-Email"))
+	if headerEmail != "" {
+		return strings.ToLower(headerEmail)
+	}
+
+	return strings.ToLower(strings.TrimSpace(c.QueryParam("email")))
 }
 
 func (ctl *Controller) requireAdmin(c echo.Context) error {

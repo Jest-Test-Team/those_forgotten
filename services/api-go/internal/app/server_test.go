@@ -6,7 +6,21 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/golang-jwt/jwt/v5"
 )
+
+func signedTestToken(t *testing.T, secret string, claims jwt.MapClaims) string {
+	t.Helper()
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signed, err := token.SignedString([]byte(secret))
+	if err != nil {
+		t.Fatalf("SignedString() error = %v", err)
+	}
+
+	return signed
+}
 
 func TestListAuctions(t *testing.T) {
 	server, err := NewServer()
@@ -107,13 +121,17 @@ func TestCalendarFeedWithToken(t *testing.T) {
 
 func TestGetAuthContext(t *testing.T) {
 	t.Setenv("ADMIN_EMAILS", "admin@example.com")
+	t.Setenv("SUPABASE_JWT_SECRET", "jwt-secret")
 
 	server, err := NewServer()
 	if err != nil {
 		t.Fatalf("NewServer() error = %v", err)
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/v1/auth/context?email=admin@example.com", nil)
+	req := httptest.NewRequest(http.MethodGet, "/v1/auth/context", nil)
+	req.Header.Set("Authorization", "Bearer "+signedTestToken(t, "jwt-secret", jwt.MapClaims{
+		"email": "admin@example.com",
+	}))
 	rec := httptest.NewRecorder()
 
 	server.Echo().ServeHTTP(rec, req)
@@ -129,6 +147,24 @@ func TestGetAuthContext(t *testing.T) {
 
 	if payload["data"]["role"] != "admin" {
 		t.Fatalf("expected admin role, got %v", payload["data"]["role"])
+	}
+}
+
+func TestGetAuthContextFallsBackToQueryEmail(t *testing.T) {
+	t.Setenv("ADMIN_EMAILS", "admin@example.com")
+
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/auth/context?email=admin@example.com", nil)
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
 	}
 }
 
@@ -342,6 +378,28 @@ func TestAdminRoutesRequireAdminRole(t *testing.T) {
 	server.Echo().ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusForbidden {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
+func TestAdminRoutesAcceptBearerToken(t *testing.T) {
+	t.Setenv("ADMIN_EMAILS", "admin@example.com")
+	t.Setenv("SUPABASE_JWT_SECRET", "jwt-secret")
+
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/community-reports", nil)
+	req.Header.Set("Authorization", "Bearer "+signedTestToken(t, "jwt-secret", jwt.MapClaims{
+		"email": "admin@example.com",
+	}))
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
 		t.Fatalf("ServeHTTP() code = %d", rec.Code)
 	}
 }
