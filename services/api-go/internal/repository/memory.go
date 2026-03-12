@@ -32,6 +32,9 @@ type Repository interface {
 	ResolveAuthContext(email string) (model.AuthContext, bool)
 	UpsertMembershipByEmail(email string, planCode string, status string, renewsAt time.Time) error
 	GrantCourseAccessByEmail(email string, courseSlug string, source string) error
+	ClaimPendingNotificationJobs(limit int) []model.NotificationJob
+	MarkNotificationJobDelivered(id string) error
+	MarkNotificationJobFailed(id string, lastError string) error
 }
 
 type MemoryRepository struct {
@@ -47,6 +50,7 @@ type MemoryRepository struct {
 	reports     []model.CommunityReport
 	advisorLead []model.AdvisorLead
 	crawlers    []model.CrawlerStatus
+	notifyJobs  []model.NotificationJob
 }
 
 func NewMemoryRepository() *MemoryRepository {
@@ -298,5 +302,57 @@ func (m *MemoryRepository) UpsertMembershipByEmail(email string, planCode string
 }
 
 func (m *MemoryRepository) GrantCourseAccessByEmail(email string, courseSlug string, source string) error {
+	return nil
+}
+
+func (m *MemoryRepository) ClaimPendingNotificationJobs(limit int) []model.NotificationJob {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	jobs := []model.NotificationJob{}
+	for index, job := range m.notifyJobs {
+		if job.Status != "pending" {
+			continue
+		}
+		job.Status = "processing"
+		m.notifyJobs[index] = job
+		jobs = append(jobs, job)
+		if len(jobs) >= limit {
+			break
+		}
+	}
+
+	return jobs
+}
+
+func (m *MemoryRepository) MarkNotificationJobDelivered(id string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	for index, job := range m.notifyJobs {
+		if job.ID == id {
+			job.Status = "delivered"
+			job.DeliveredAt = time.Now().Format(time.RFC3339)
+			m.notifyJobs[index] = job
+			return nil
+		}
+	}
+
+	return nil
+}
+
+func (m *MemoryRepository) MarkNotificationJobFailed(id string, lastError string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	for index, job := range m.notifyJobs {
+		if job.ID == id {
+			job.Status = "failed"
+			job.LastError = lastError
+			m.notifyJobs[index] = job
+			return nil
+		}
+	}
+
 	return nil
 }

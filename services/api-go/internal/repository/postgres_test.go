@@ -350,6 +350,36 @@ func TestListCrawlerStatusesReadsLatestRunsFromPostgres(t *testing.T) {
 	}
 }
 
+func TestClaimPendingNotificationJobsReadsFromPostgres(t *testing.T) {
+	mock, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("pgxmock.NewPool() error = %v", err)
+	}
+	defer mock.Close()
+
+	repo := NewPostgresRepositoryWithPool(mock)
+
+	rows := pgxmock.NewRows([]string{"id", "auction_lot_id", "keyword", "endpoint", "p256dh", "auth_secret", "payload", "status", "last_error", "created_at", "delivered_at"}).
+		AddRow("job-001", "lot-001", "相機", "https://push.example.dev/demo", "demo-key", "secret-key", `{"title":"相機"}`, "processing", "", "2026-03-12T08:00:00Z", "")
+
+	mock.ExpectQuery("UPDATE notification_jobs").
+		WithArgs(10).
+		WillReturnRows(rows)
+
+	result := repo.ClaimPendingNotificationJobs(10)
+
+	if len(result) != 1 {
+		t.Fatalf("len(result) = %d", len(result))
+	}
+	if result[0].Keyword != "相機" {
+		t.Fatalf("result[0].Keyword = %q", result[0].Keyword)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("ExpectationsWereMet() error = %v", err)
+	}
+}
+
 func TestIngestAuctionsPersistsAnnouncementAndLot(t *testing.T) {
 	mock, err := pgxmock.NewPool()
 	if err != nil {
@@ -385,6 +415,22 @@ func TestIngestAuctionsPersistsAnnouncementAndLot(t *testing.T) {
 			pgxmock.AnyArg(),
 			pgxmock.AnyArg(),
 			"demo-checksum",
+			pgxmock.AnyArg(),
+		).
+		WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	matchRows := pgxmock.NewRows([]string{"keyword", "endpoint", "p256dh", "auth_secret"}).
+		AddRow("相機", "https://push.example.dev/demo", "demo-key", "secret-key")
+	mock.ExpectQuery("SELECT ks.keyword, wps.endpoint, wps.p256dh, wps.auth_secret").
+		WithArgs("沒入數位相機與鏡頭一批", "3C").
+		WillReturnRows(matchRows)
+	mock.ExpectExec("INSERT INTO notification_jobs").
+		WithArgs(
+			pgxmock.AnyArg(),
+			pgxmock.AnyArg(),
+			"相機",
+			"https://push.example.dev/demo",
+			"demo-key",
+			"secret-key",
 			pgxmock.AnyArg(),
 		).
 		WillReturnResult(pgxmock.NewResult("INSERT", 1))

@@ -665,6 +665,50 @@ func (p *PostgresRepository) IngestAuctions(input *dto.IngestPayload) map[string
 			return p.memory.IngestAuctions(input)
 		}
 
+		rows, err := tx.Query(ctx, `
+			SELECT ks.keyword, wps.endpoint, wps.p256dh, wps.auth_secret
+			FROM keyword_subscriptions ks
+			JOIN web_push_subscriptions wps ON wps.profile_id = ks.profile_id
+			WHERE POSITION(LOWER(ks.keyword) IN LOWER($1 || ' ' || COALESCE($2, ''))) > 0
+		`, row.Title, row.Category)
+		if err != nil {
+			return p.memory.IngestAuctions(input)
+		}
+
+		for rows.Next() {
+			var keyword string
+			var endpoint string
+			var p256dh string
+			var authSecret string
+			if err := rows.Scan(&keyword, &endpoint, &p256dh, &authSecret); err != nil {
+				rows.Close()
+				return p.memory.IngestAuctions(input)
+			}
+
+			notificationPayload, err := json.Marshal(map[string]any{
+				"title":       row.Title,
+				"office":      row.Office,
+				"category":    row.Category,
+				"closing_at":  row.ClosingAt,
+				"officialUrl": row.OriginalLink,
+				"warnings":    row.Warnings,
+			})
+			if err != nil {
+				rows.Close()
+				return p.memory.IngestAuctions(input)
+			}
+
+			_, err = tx.Exec(ctx, `
+				INSERT INTO notification_jobs (id, auction_lot_id, keyword, endpoint, p256dh, auth_secret, payload, status, created_at)
+				VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, 'pending', NOW())
+			`, uuid.New(), lotID, keyword, endpoint, p256dh, authSecret, string(notificationPayload))
+			if err != nil {
+				rows.Close()
+				return p.memory.IngestAuctions(input)
+			}
+		}
+		rows.Close()
+
 		officeRowCounts[row.Office]++
 	}
 
@@ -760,6 +804,86 @@ func (p *PostgresRepository) GrantCourseAccessByEmail(email string, courseSlug s
 		SET source = EXCLUDED.source
 	`, uuid.New(), profileID, source, courseSlug)
 	return err
+}
+
+func (p *PostgresRepository) ClaimPendingNotificationJobs(limit int) []model.NotificationJob {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := p.pool.Query(ctx, `
+		UPDATE notification_jobs
+		SET status = 'processing'
+		WHERE id IN (
+			SELECT id
+			FROM notification_jobs
+			WHERE status = 'pending'
+			ORDER BY created_at
+			LIMIT $1
+		)
+		RETURNING id::text, auction_lot_id::text, keyword, endpoint, p256dh, auth_secret, payload::text, status, COALESCE(last_error, ''), created_at::text, COALESCE(delivered_at::text, '')
+	`, limit)
+	if err != nil {
+		return p.memory.ClaimPendingNotificationJobs(limit)
+	}
+	defer rows.Close()
+
+	jobs := []model.NotificationJob{}
+	for rows.Next() {
+		var job model.NotificationJob
+		if err := rows.Scan(
+			&job.ID,
+			&job.AuctionLotID,
+			&job.Keyword,
+			&job.Endpoint,
+			&job.P256DH,
+			&job.AuthSecret,
+			&job.Payload,
+			&job.Status,
+			&job.LastError,
+			&job.CreatedAt,
+			&job.DeliveredAt,
+		); err != nil {
+			return p.memory.ClaimPendingNotificationJobs(limit)
+		}
+		jobs = append(jobs, job)
+	}
+
+	return jobs
+}
+
+func (p *PostgresRepository) MarkNotificationJobDelivered(id string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := p.pool.Exec(ctx, `
+		UPDATE notification_jobs
+		SET status = 'delivered',
+		    last_error = NULL,
+		    delivered_at = NOW()
+		WHERE id = $1::uuid
+	`, id)
+	if err != nil {
+		return p.memory.MarkNotificationJobDelivered(id)
+	}
+
+	return nil
+}
+
+func (p *PostgresRepository) MarkNotificationJobFailed(id string, lastError string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := p.pool.Exec(ctx, `
+		UPDATE notification_jobs
+		SET status = 'failed',
+		    last_error = $2
+		WHERE id = $1::uuid
+	`, id, lastError)
+	if err != nil {
+		return p.memory.MarkNotificationJobFailed(id, lastError)
+	}
+
+	return nil
 }
 
 func (p *PostgresRepository) ensureDemoProfile(ctx context.Context) error {
