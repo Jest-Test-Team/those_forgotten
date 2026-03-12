@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package customs.platform.v1;
+
+message AuctionLotSnapshot {
+  string auction_lot_id = 1;
+  string office = 2;
+  string title = 3;
+  string category = 4;
+  string official_url = 5;
+  string closing_at = 6;
+  repeated string warnings = 7;
+}
+
+message MatchAuctionRequest {
+  AuctionLotSnapshot lot = 1;
+  repeated string keywords = 2;
+}
+
+message MatchAuctionResponse {
+  repeated string matched_keywords = 1;
+  repeated string derived_tags = 2;
+}
+
+message EvaluatePolicyRequest {
+  AuctionLotSnapshot lot = 1;
+}
+
+message EvaluatePolicyResponse {
+  bool restricted = 1;
+  repeated string policy_labels = 2;
+}
+
+message PrepareNotificationRequest {
+  AuctionLotSnapshot lot = 1;
+  string keyword = 2;
+}
+
+message PrepareNotificationResponse {
+  string title = 1;
+  string body = 2;
+  string click_url = 3;
+}
+
+message RenderCalendarRequest {
+  string token = 1;
+  repeated AuctionLotSnapshot lots = 2;
+}
+
+message RenderCalendarResponse {
+  string ics = 1;
+}
+
+service MatcherService {
+  rpc MatchAuction(MatchAuctionRequest) returns (MatchAuctionResponse);
+}
+
+service PolicyService {
+  rpc EvaluatePolicy(EvaluatePolicyRequest) returns (EvaluatePolicyResponse);
+}
+
+service PushService {
+  rpc PrepareNotification(PrepareNotificationRequest) returns (PrepareNotificationResponse);
+}
+
+service FeedService {
+  rpc RenderCalendar(RenderCalendarRequest) returns (RenderCalendarResponse);
+}

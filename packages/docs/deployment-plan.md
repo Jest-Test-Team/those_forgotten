@@ -8,6 +8,7 @@ Recommended MVP split:
 - `Auth + Postgres + Storage` -> Supabase Free
 - `services/api-go` -> Koyeb Starter
 - `services/crawler` -> Koyeb Starter only for manual/on-demand runs, or move to GitHub Actions cron if free-instance hours become tight
+- `services/*-rs` -> optional internal tonic sidecars after the hosted baseline is stable
 
 Rejected for the free-tier plan:
 
@@ -78,6 +79,7 @@ For this repo, I would not treat free Koyeb as a durable "always-on API plus alw
 
 - Move push matching and ingestion heavy paths off the request path
 - Add proper worker separation
+- Promote the Rust gRPC scaffolds for matcher / policy / push / feed into active sidecars
 - Revisit OCI Always Free or a paid container platform if sustained traffic starts to exceed free limits
 
 ## Rust Split Evaluation

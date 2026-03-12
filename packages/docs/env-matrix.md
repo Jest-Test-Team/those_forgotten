@@ -43,6 +43,10 @@ Notes:
 - `VAPID_PRIVATE_KEY`
 - `VAPID_SUBJECT`
 - `GRPC_PORT`
+- `MATCHER_GRPC_ADDR`
+- `POLICY_GRPC_ADDR`
+- `PUSH_GRPC_ADDR`
+- `FEED_GRPC_ADDR`
 - `WS_ALLOWED_ORIGINS`
 - `CSRF_TRUSTED_ORIGINS`
 - `TRUSTED_PROXY_CIDRS`
@@ -56,11 +60,13 @@ Notes:
   `postgresql://postgres.mluxmwdbjunrqgyuqizn:YOUR_PASSWORD@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require`
 - `REDIS_URL` remains the right place for rate limit counters, locks, short-lived cache, and websocket session fan-out.
 - `KAFKA_BROKERS` is the recommended event backbone once crawler ingest and notification fan-out move to durable streaming.
+- `MATCHER_GRPC_ADDR`, `POLICY_GRPC_ADDR`, `PUSH_GRPC_ADDR`, and `FEED_GRPC_ADDR` are the default internal tonic endpoints for the Rust sidecars.
 - `SUPABASE_JWT_SECRET` is required if admin/member API routes should trust Bearer tokens from Supabase.
 - `api-go` now detects Supabase transaction pooler URLs and switches `pgx` to simple protocol for PgBouncer compatibility.
 - If `STRIPE_SECRET_KEY`, price ids, and redirect URLs are present, `POST /v1/stripe/checkout` now creates a live Stripe Checkout Session.
 - `STRIPE_CHECKOUT_BASE_URL` remains as the fallback path when live Stripe credentials are not present.
 - If the three `VAPID_*` variables are present, `make notify-worker` sends real Web Push notifications; otherwise it falls back to simulate mode.
+- `CSRF_TRUSTED_ORIGINS` is now enforced for mutating requests that carry cookies.
 
 ## `services/crawler`
 

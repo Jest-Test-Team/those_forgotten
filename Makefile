@@ -1,6 +1,6 @@
 SHELL := /bin/zsh
 
-.PHONY: bootstrap dev lint test typecheck api-test crawler-test web-test sync-contracts stack-build stack-up stack-web stack-logs stack-streaming-up stack-streaming-logs stack-prod-config stack-prod-up stack-prod-logs stack-down api-dev crawler-dev crawler-post-fixtures grant-role seed-db notify-worker smoke-check
+.PHONY: bootstrap dev lint test typecheck api-test crawler-test web-test rust-check sync-contracts stack-build stack-up stack-web stack-logs stack-streaming-up stack-streaming-logs stack-prod-config stack-prod-up stack-prod-logs stack-down api-dev crawler-dev crawler-post-fixtures grant-role seed-db notify-worker smoke-check
 
 bootstrap:
 	corepack pnpm install
@@ -33,6 +33,9 @@ crawler-test:
 
 web-test:
 	cd apps/web && npm test
+
+rust-check:
+	cargo check
 
 sync-contracts:
 	corepack pnpm --filter @customs/contracts build

@@ -88,6 +88,21 @@ For this repo, Kafka is justified when:
 - `billing.checkout.completed`
 - `billing.entitlement.updated`
 
+### Redis vs Kafka By Concrete Function
+
+- Redis:
+  - IP / token-bucket rate limit counters
+  - short-lived cache for admin dashboards
+  - distributed locks around scheduled crawler triggers
+  - websocket fan-out presence and connection routing
+  - idempotency keys for Stripe webhook replay handling
+- Kafka / Redpanda:
+  - crawler normalized payload publication
+  - change-log fan-out to matcher / policy / push workers
+  - notification job creation and retry streams
+  - billing / entitlement event propagation
+  - replayable audit/event debugging
+
 ### Practical Recommendation
 
 - Keep Redis now.
@@ -117,6 +132,8 @@ Recommended layers:
 - request timeout and header timeout
 - connection concurrency caps for webhook and push paths
 
+This repo now includes request body limits, timeout middleware, header timeouts, and a configurable rate-limit RPS baseline in `api-go`.
+
 ## CSRF
 
 For this repo:
@@ -130,6 +147,8 @@ Recommended approach:
 - origin / referer validation on state-changing browser routes
 - CSRF token on future cookie-based server actions or admin forms
 
+This repo now includes a baseline origin/referer guard for mutating requests that carry cookies.
+
 ## SQL Injection
 
 Current repo already benefits from parameterized queries in `pgx`.
@@ -140,6 +159,8 @@ Keep these rules:
 - whitelist sort fields and filter operators
 - centralize raw SQL review for admin/search endpoints
 - prefer prepared/parameterized queries everywhere
+
+The current `api-go` repository layer continues to use `pgx` parameter binding instead of string-concatenated user SQL.
 
 ## Additional Hardening Worth Adding
 
@@ -198,6 +219,25 @@ For this repo as a browser-first auction platform, MQTT is not the default recom
 - Use WebSocket for browser live updates.
 - Use Kafka for durable async event streams.
 - Do not adopt MQTT unless your client mix changes materially.
+
+## 4.1 Internal Proto Scaffold Added
+
+This repo now includes:
+
+- `packages/shared-proto/customs/platform/v1/platform.proto`
+- `services/matcher-rs`
+- `services/policy-rs`
+- `services/push-rs`
+- `services/feed-rs`
+
+The Rust services use `tonic` for gRPC scaffolding. They are intentionally narrow:
+
+- `matcher-rs`: keyword/tag derivation
+- `policy-rs`: compliance labeling
+- `push-rs`: push payload preparation
+- `feed-rs`: ICS rendering
+
+The current scaffold is meant to establish stable contracts and compilation paths first. Durable Kafka consumers, Redis-backed coordination, and production auth between services should be layered on next.
 
 ## 5. Suggested Evolution Order
 

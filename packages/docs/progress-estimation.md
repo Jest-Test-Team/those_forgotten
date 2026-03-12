@@ -4,9 +4,9 @@ Estimated on 2026-03-12.
 
 ## Overall
 
-- Overall delivery progress: `95%`
-- Product discovery / information architecture: `95%`
-- Production readiness: `95%`
+- Overall delivery progress: `97%`
+- Product discovery / information architecture: `97%`
+- Production readiness: `96%`
 
 The repo now covers the planned v1 product surfaces and the main backend control paths at a near-launch level. The remaining `5%` is concentrated in rollout proof rather than missing architecture: first live secret provisioning, first end-to-end production smoke run, and a handful of operational edge paths.
 
@@ -16,9 +16,9 @@ The estimate intentionally does **not** claim `100%` yet. That would require com
 
 | Area | Progress | Status | Notes |
 | --- | ---: | --- | --- |
-| Monorepo foundation | 97% | strong | Workspace layout, compose, make targets, CI, Dockerfiles, contracts sync, env matrices, and deploy guides are in place. |
+| Monorepo foundation | 98% | strong | Workspace layout, compose, make targets, CI, Dockerfiles, contracts sync, env matrices, production-like compose override, and deploy guides are in place. |
 | Next.js public surfaces | 95% | strong | Public, member, and admin surfaces are coherent, mobile-first, and wired to protected server/client paths. |
-| API route coverage | 95% | strong | Main v1 endpoints exist, protected writes enforce auth, and readiness/health endpoints support deployment verification. |
+| API route coverage | 96% | strong | Main v1 endpoints exist, protected writes enforce auth, readiness/health endpoints support deployment verification, and Swagger UI is now served directly for API testing. |
 | Auth flow | 95% | strong | Supabase SSR login exists, browser/server protected requests send Bearer tokens, and protected API routes now reject fallback identity when JWT verification is configured. |
 | RBAC | 95% | strong | Web guard, API admin guard, DB-backed `user_roles`, and stricter protected-route identity enforcement are in place. |
 | Postgres persistence | 95% | strong | Member/admin writes, crawler runs, ingest change logs, Stripe entitlements, and notification jobs have durable Postgres paths, and `api-go` now detects Supabase transaction pooler URLs for PgBouncer-compatible query mode. |
@@ -29,9 +29,10 @@ The estimate intentionally does **not** claim `100%` yet. That would require com
 | Advisor marketplace | 90% | strong | Directory, lead form, admin lead queue, and protected operations cover the planned v1 scope. |
 | Monetization | 95% | strong | Typed Stripe checkout payloads, live Checkout Session support, webhook processing, and membership/course entitlement persistence are now in place. |
 | Push notifications | 95% | strong | Web push subscriptions are persisted, ingest creates notification jobs, and the worker now supports real VAPID delivery with simulate fallback. |
-| Security / compliance | 95% | strong | Disclaimers, CORS, rate limit, auth guard, strict Bearer enforcement on protected routes, RBAC bootstrap, and warning labels are in place. |
-| Tests | 92% | strong | Go unit/smoke coverage includes auth, billing, crawler persistence, notification queue, and readiness paths; browser E2E is the main remaining gap. |
-| Deployability | 96% | strong | Vercel/Supabase/Koyeb plan, Terraform scaffold, CI, deploy-smoke workflow, `readyz`, smoke scripts, Koyeb fix guide, env matrix, and Supabase pooler-ready examples are all in place. |
+| Security / compliance | 96% | strong | Disclaimers, CORS, rate limit, auth guard, strict Bearer enforcement on protected routes, RBAC bootstrap, warning labels, request limits, timeout baselines, and cookie mutation origin checks are in place. |
+| Tests | 93% | strong | Go unit/smoke coverage includes auth, billing, crawler persistence, notification queue, readiness paths, and Swagger route checks; browser E2E is the main remaining gap. |
+| Deployability | 97% | strong | Vercel/Supabase/Koyeb plan, Terraform scaffold, CI, deploy-smoke workflow, `readyz`, smoke scripts, Koyeb fix guide, env matrix, seed flow, Swagger testing path, and Supabase pooler-ready examples are all in place. |
+| Internal services evolution | 94% | strong | Shared proto contracts and tonic-based Rust service scaffolds now exist for matcher, policy, push, and feed workloads. |
 
 ## What Is Effectively Done
 
@@ -46,6 +47,7 @@ The estimate intentionally does **not** claim `100%` yet. That would require com
 - Stripe checkout can create live sessions when real production credentials are present.
 - Notification delivery now supports real VAPID mode instead of simulate-only operation.
 - Supabase production examples and PgBouncer-compatible transaction-pooler handling are now aligned.
+- A production-like compose override, hosted secrets checklist, DB seed command, Swagger UI test surface, and tonic-based Rust internal service scaffolds now exist.
 
 ## What Is Only Partially Done
 
@@ -59,7 +61,7 @@ The estimate intentionally does **not** claim `100%` yet. That would require com
 3. Validate live Stripe Checkout and webhook delivery in the hosted environment.
 4. Validate live VAPID push delivery from `notify-worker`.
 5. Add browser E2E coverage for login, purchases, and notification-critical paths.
-6. Extend non-blocking admin lifecycle tooling for moderation/advisor assignment polish.
+6. Promote the Rust scaffolds from compile-ready tonic services to real Kafka/Redis-connected workers.
 
 ## Suggested Next 5 Execution Steps
 
@@ -71,8 +73,8 @@ The estimate intentionally does **not** claim `100%` yet. That would require com
 
 ## Confidence Notes
 
-- Confidence in the `95%` feature-progress estimate: medium
-- Confidence in the `95%` production-readiness estimate: medium
+- Confidence in the `97%` feature-progress estimate: medium
+- Confidence in the `96%` production-readiness estimate: medium
 
 Reason:
 

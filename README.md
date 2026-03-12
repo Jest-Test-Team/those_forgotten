@@ -8,7 +8,9 @@ Monorepo for a zh-TW customs auction discovery platform.
 - `services/api-go`: Go Echo API
 - `services/crawler`: Python Playwright crawler
 - `packages/contracts`: OpenAPI contract package
+- `packages/shared-proto`: internal Protobuf contracts
 - `infra`: container images for web, api, and crawler
+- `services/*-rs`: tonic-based Rust internal services
 
 ## Quick Start
 
@@ -23,6 +25,7 @@ make dev
 cd apps/web && npm run dev
 cd services/api-go && go run ./cmd/api
 cd services/crawler && source .venv/bin/activate && python -m crawler.cli --fixtures fixtures
+cargo check
 ```
 
 ## Docker Compose

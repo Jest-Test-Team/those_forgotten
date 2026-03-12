@@ -16,6 +16,7 @@ __pycache__/
 *.egg-info/
 bin/
 vendor/
+target/
 tmp/
 *.log
 .terraform/

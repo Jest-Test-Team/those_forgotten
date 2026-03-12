@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/controller"
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/middleware"
@@ -24,6 +25,11 @@ type Server struct {
 
 func NewServer() (*Server, error) {
 	e := echo.New()
+	e.Server.ReadHeaderTimeout = 5 * time.Second
+	e.Server.ReadTimeout = 15 * time.Second
+	e.Server.WriteTimeout = 15 * time.Second
+	e.Server.IdleTimeout = 60 * time.Second
+	e.Server.MaxHeaderBytes = 1 << 20
 	middleware.Install(e, os.Getenv("WEB_ORIGIN"))
 
 	repo := repository.Repository(repository.NewMemoryRepository())
