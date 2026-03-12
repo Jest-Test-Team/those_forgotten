@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -37,6 +38,11 @@ func NewPostgresRepository(ctx context.Context, databaseURL string) (*PostgresRe
 	}
 
 	config.MaxConns = 5
+	if usesSupabaseTransactionPooler(databaseURL) {
+		// Supabase transaction pooler runs through PgBouncer semantics on port 6543.
+		// Simple protocol avoids prepared-statement assumptions that can break in transaction pooling mode.
+		config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
@@ -55,6 +61,17 @@ func NewPostgresRepository(ctx context.Context, databaseURL string) (*PostgresRe
 		pool:   pool,
 		memory: NewMemoryRepository(),
 	}, nil
+}
+
+func usesSupabaseTransactionPooler(databaseURL string) bool {
+	parsed, err := url.Parse(databaseURL)
+	if err != nil {
+		return false
+	}
+
+	host := strings.ToLower(parsed.Hostname())
+	port := parsed.Port()
+	return strings.Contains(host, "pooler.supabase.com") && port == "6543"
 }
 
 func NewPostgresRepositoryWithPool(pool postgresQuerier) *PostgresRepository {
