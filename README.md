@@ -33,6 +33,13 @@ docker compose up --build
 
 This starts `postgres`, `redis`, `api`, `web`, and `crawler` with the demo ingestion token and internal service wiring.
 
+Production-like override:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml config
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
 ## Local Stack
 
 ```bash
@@ -41,6 +48,14 @@ make api-dev
 make crawler-dev
 make crawler-post-fixtures
 make stack-down
+```
+
+Production-like stack helpers:
+
+```bash
+make stack-prod-config
+make stack-prod-up
+make stack-prod-logs
 ```
 
 ## Role Management
@@ -76,6 +91,7 @@ This copies `packages/contracts/openapi.yaml` to `services/api-go/docs/swagger.y
 - Detailed progress estimate: `packages/docs/progress-estimation.md`
 - Environment matrix: `packages/docs/env-matrix.md`
 - Backend evolution guide: `packages/docs/backend-evolution.md`
+- Hosted secrets checklist: `packages/docs/secrets-checklist.md`
 - Terraform scaffold: `infra/terraform`
 
 

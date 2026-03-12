@@ -84,3 +84,14 @@ Notes:
 - Supabase: Auth, Postgres, Storage
 - Koyeb: `services/api-go`
 - GitHub Actions cron or optional Koyeb service: `services/crawler`
+
+## Production-Like Compose Override
+
+Use the root override file when you want the local stack to behave more like hosted deployment:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml config
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+This expects real values for the shared runtime variables instead of the local demo defaults.

@@ -1,6 +1,6 @@
 SHELL := /bin/zsh
 
-.PHONY: bootstrap dev lint test typecheck api-test crawler-test web-test sync-contracts stack-build stack-up stack-web stack-logs stack-streaming-up stack-streaming-logs stack-down api-dev crawler-dev crawler-post-fixtures grant-role notify-worker smoke-check
+.PHONY: bootstrap dev lint test typecheck api-test crawler-test web-test sync-contracts stack-build stack-up stack-web stack-logs stack-streaming-up stack-streaming-logs stack-prod-config stack-prod-up stack-prod-logs stack-down api-dev crawler-dev crawler-post-fixtures grant-role notify-worker smoke-check
 
 bootstrap:
 	corepack pnpm install
@@ -54,6 +54,15 @@ stack-streaming-up:
 
 stack-streaming-logs:
 	docker compose --profile streaming logs -f --tail=100 redpanda
+
+stack-prod-config:
+	docker compose -f docker-compose.yml -f docker-compose.prod.yml config
+
+stack-prod-up:
+	docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+stack-prod-logs:
+	docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f --tail=100 api web crawler
 
 stack-down:
 	docker compose down
