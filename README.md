@@ -43,6 +43,12 @@ make crawler-post-fixtures
 make stack-down
 ```
 
+## Role Management
+
+```bash
+DATABASE_URL=postgres://... EMAIL=admin@example.com ROLE=admin make grant-role
+```
+
 ## Contracts
 
 ```bash

@@ -1,6 +1,6 @@
 SHELL := /bin/zsh
 
-.PHONY: bootstrap dev lint test typecheck api-test crawler-test web-test sync-contracts stack-build stack-up stack-web stack-logs stack-down api-dev crawler-dev crawler-post-fixtures
+.PHONY: bootstrap dev lint test typecheck api-test crawler-test web-test sync-contracts stack-build stack-up stack-web stack-logs stack-down api-dev crawler-dev crawler-post-fixtures grant-role
 
 bootstrap:
 	corepack pnpm install
@@ -60,3 +60,6 @@ crawler-dev:
 
 crawler-post-fixtures:
 	cd services/crawler && . .venv/bin/activate && python -m crawler.cli --fixtures fixtures --post --endpoint $${INGEST_ENDPOINT:-http://localhost:8080/internal/ingest/auctions} --token $${INTERNAL_INGEST_TOKEN:-demo-token}
+
+grant-role:
+	cd services/api-go && DATABASE_URL=$${DATABASE_URL:?set DATABASE_URL} go run ./cmd/grant-role --email $${EMAIL:?set EMAIL} --role $${ROLE:-admin} --name "$${NAME:-}"
