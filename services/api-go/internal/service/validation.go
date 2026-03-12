@@ -27,6 +27,18 @@ func (s *PlatformService) ValidateWebPush(input *dto.WebPushSubscriptionInput) b
 	return true
 }
 
+func (s *PlatformService) ValidateCheckoutSession(input *dto.CheckoutSessionInput) bool {
+	kind := strings.TrimSpace(strings.ToLower(input.Kind))
+	switch kind {
+	case "membership":
+		return strings.TrimSpace(input.PlanCode) != ""
+	case "course":
+		return strings.TrimSpace(input.CourseSlug) != ""
+	default:
+		return false
+	}
+}
+
 func (s *PlatformService) ValidateCommunityPost(input *dto.CommunityPostInput) bool {
 	return strings.TrimSpace(input.Title) != "" && strings.TrimSpace(input.Body) != "" && strings.TrimSpace(input.Office) != ""
 }

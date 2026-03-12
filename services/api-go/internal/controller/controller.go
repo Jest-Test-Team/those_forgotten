@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"io"
 	"net/http"
 	"strings"
 
@@ -218,15 +219,36 @@ func (ctl *Controller) ListCourses(c echo.Context) error {
 }
 
 func (ctl *Controller) CreateCheckoutSession(c echo.Context) error {
-	if _, err := ctl.requireMember(c); err != nil {
+	auth, err := ctl.requireMember(c)
+	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{"data": ctl.service.CheckoutSession()})
+	input := new(dto.CheckoutSessionInput)
+	if c.Request().ContentLength > 0 {
+		if err := c.Bind(input); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid payload"})
+		}
+	}
+	if !ctl.service.ValidateCheckoutSession(input) {
+		return c.JSON(http.StatusBadRequest, map[string]any{"error": "checkout kind requires plan_code or course_slug"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]any{"data": ctl.service.CheckoutSession(auth.Email, input)})
 }
 
 func (ctl *Controller) StripeWebhook(c echo.Context) error {
-	return c.JSON(http.StatusOK, map[string]any{"received": true})
+	payload, err := io.ReadAll(c.Request().Body)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid payload"})
+	}
+
+	result, err := ctl.service.HandleStripeWebhook(c.Request().Header.Get("Stripe-Signature"), payload)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]any{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, result)
 }
 
 func (ctl *Controller) ListCommunityPosts(c echo.Context) error {

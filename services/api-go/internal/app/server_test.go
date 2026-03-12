@@ -272,6 +272,40 @@ func TestCreateAdvisorLead(t *testing.T) {
 	}
 }
 
+func TestCreateCheckoutSession(t *testing.T) {
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/stripe/checkout?email=member@example.com", bytes.NewBufferString(`{"kind":"membership","plan_code":"pro-monthly"}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
+func TestStripeWebhookProcessesMembershipEvent(t *testing.T) {
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/stripe/webhook", bytes.NewBufferString(`{"type":"checkout.session.completed","data":{"object":{"metadata":{"kind":"membership","plan_code":"pro-monthly","email":"member@example.com"}}}}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
 func TestListAdvisorLeads(t *testing.T) {
 	t.Setenv("ADMIN_EMAILS", "admin@example.com")
 

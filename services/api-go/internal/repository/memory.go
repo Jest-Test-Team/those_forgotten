@@ -30,6 +30,8 @@ type Repository interface {
 	CreateAdvisorLead(input *dto.AdvisorLeadInput) model.AdvisorLead
 	IngestAuctions(input *dto.IngestPayload) map[string]any
 	ResolveAuthContext(email string) (model.AuthContext, bool)
+	UpsertMembershipByEmail(email string, planCode string, status string, renewsAt time.Time) error
+	GrantCourseAccessByEmail(email string, courseSlug string, source string) error
 }
 
 type MemoryRepository struct {
@@ -289,4 +291,12 @@ func (m *MemoryRepository) IngestAuctions(input *dto.IngestPayload) map[string]a
 
 func (m *MemoryRepository) ResolveAuthContext(email string) (model.AuthContext, bool) {
 	return model.AuthContext{}, false
+}
+
+func (m *MemoryRepository) UpsertMembershipByEmail(email string, planCode string, status string, renewsAt time.Time) error {
+	return nil
+}
+
+func (m *MemoryRepository) GrantCourseAccessByEmail(email string, courseSlug string, source string) error {
+	return nil
 }

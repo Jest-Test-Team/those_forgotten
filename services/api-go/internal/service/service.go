@@ -1,20 +1,33 @@
 package service
 
 import (
+	"encoding/json"
+	"errors"
+	"net/url"
 	"strings"
+	"time"
 
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/dto"
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/model"
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/repository"
+	"github.com/google/uuid"
+	"github.com/stripe/stripe-go/v82/webhook"
 )
 
 type PlatformService struct {
-	repo        repository.Repository
-	adminEmails []string
+	repo                  repository.Repository
+	adminEmails           []string
+	stripeCheckoutBaseURL string
+	stripeWebhookSecret   string
 }
 
-func NewPlatformService(repo repository.Repository, adminEmails []string) *PlatformService {
-	return &PlatformService{repo: repo, adminEmails: adminEmails}
+func NewPlatformService(repo repository.Repository, adminEmails []string, stripeCheckoutBaseURL string, stripeWebhookSecret string) *PlatformService {
+	return &PlatformService{
+		repo:                  repo,
+		adminEmails:           adminEmails,
+		stripeCheckoutBaseURL: stripeCheckoutBaseURL,
+		stripeWebhookSecret:   stripeWebhookSecret,
+	}
 }
 
 func (s *PlatformService) ListAuctions() []model.AuctionLot {
@@ -69,11 +82,108 @@ func (s *PlatformService) ListCourses() []model.Course {
 	return s.repo.ListCourses()
 }
 
-func (s *PlatformService) CheckoutSession() map[string]string {
-	return map[string]string{
-		"provider": "stripe",
-		"url":      "https://checkout.stripe.com/pay/cs_test_example",
+func (s *PlatformService) CheckoutSession(email string, input *dto.CheckoutSessionInput) map[string]string {
+	baseURL := strings.TrimSpace(s.stripeCheckoutBaseURL)
+	if baseURL == "" {
+		baseURL = "https://checkout.stripe.com/pay/cs_test_example"
 	}
+
+	values := url.Values{}
+	values.Set("reference", uuid.NewString())
+	values.Set("prefilled_email", strings.TrimSpace(strings.ToLower(email)))
+	values.Set("kind", strings.TrimSpace(strings.ToLower(input.Kind)))
+	if strings.TrimSpace(input.PlanCode) != "" {
+		values.Set("plan_code", strings.TrimSpace(input.PlanCode))
+	}
+	if strings.TrimSpace(input.CourseSlug) != "" {
+		values.Set("course_slug", strings.TrimSpace(input.CourseSlug))
+	}
+
+	separator := "?"
+	if strings.Contains(baseURL, "?") {
+		separator = "&"
+	}
+
+	return map[string]string{
+		"provider":  "stripe",
+		"url":       baseURL + separator + values.Encode(),
+		"reference": values.Get("reference"),
+		"kind":      values.Get("kind"),
+	}
+}
+
+func (s *PlatformService) HandleStripeWebhook(signature string, payload []byte) (map[string]any, error) {
+	eventType := ""
+	rawObject := payload
+
+	if strings.TrimSpace(s.stripeWebhookSecret) != "" {
+		event, err := webhook.ConstructEvent(payload, signature, s.stripeWebhookSecret)
+		if err != nil {
+			return nil, err
+		}
+		eventType = string(event.Type)
+		rawObject = event.Data.Raw
+	} else {
+		var fallback struct {
+			Type string `json:"type"`
+			Data struct {
+				Object json.RawMessage `json:"object"`
+			} `json:"data"`
+		}
+		if err := json.Unmarshal(payload, &fallback); err != nil {
+			return nil, err
+		}
+		eventType = fallback.Type
+		rawObject = fallback.Data.Object
+	}
+
+	if eventType == "" {
+		return nil, errors.New("stripe event type required")
+	}
+	if eventType != "checkout.session.completed" {
+		return map[string]any{"received": true, "type": eventType, "ignored": true}, nil
+	}
+
+	var session struct {
+		Metadata        map[string]string `json:"metadata"`
+		CustomerDetails struct {
+			Email string `json:"email"`
+		} `json:"customer_details"`
+	}
+	if err := json.Unmarshal(rawObject, &session); err != nil {
+		return nil, err
+	}
+
+	email := strings.TrimSpace(strings.ToLower(session.Metadata["email"]))
+	if email == "" {
+		email = strings.TrimSpace(strings.ToLower(session.CustomerDetails.Email))
+	}
+	if email == "" {
+		return nil, errors.New("stripe session email required")
+	}
+
+	switch strings.TrimSpace(strings.ToLower(session.Metadata["kind"])) {
+	case "membership":
+		planCode := strings.TrimSpace(session.Metadata["plan_code"])
+		if planCode == "" {
+			return nil, errors.New("membership plan_code required")
+		}
+		if err := s.repo.UpsertMembershipByEmail(email, planCode, "active", time.Now().Add(30*24*time.Hour)); err != nil {
+			return nil, err
+		}
+	case "course":
+		courseSlug := strings.TrimSpace(session.Metadata["course_slug"])
+		if courseSlug == "" {
+			return nil, errors.New("course_slug required")
+		}
+		if err := s.repo.GrantCourseAccessByEmail(email, courseSlug, "stripe-webhook"); err != nil {
+			return nil, err
+		}
+	default:
+		return map[string]any{"received": true, "type": eventType, "ignored": true}, nil
+	}
+
+	return map[string]any{"received": true, "type": eventType, "processed": true, "customer": email}, nil
 }
 
 func (s *PlatformService) ListCommunityPosts() []model.CommunityPost {

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"testing"
+	"time"
 
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/dto"
 	pgxmock "github.com/pashagolub/pgxmock/v4"
@@ -116,6 +117,56 @@ func TestCreateAdvisorLeadPersistsToPostgres(t *testing.T) {
 
 	if result.Email != "member@example.com" {
 		t.Fatalf("result.Email = %q", result.Email)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("ExpectationsWereMet() error = %v", err)
+	}
+}
+
+func TestUpsertMembershipByEmailPersistsToPostgres(t *testing.T) {
+	mock, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("pgxmock.NewPool() error = %v", err)
+	}
+	defer mock.Close()
+
+	repo := NewPostgresRepositoryWithPool(mock)
+
+	mock.ExpectExec("INSERT INTO profiles").
+		WithArgs(pgxmock.AnyArg(), "member@example.com", "member").
+		WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	mock.ExpectExec("INSERT INTO memberships").
+		WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), "pro-monthly", "active", pgxmock.AnyArg()).
+		WillReturnResult(pgxmock.NewResult("INSERT", 1))
+
+	if err := repo.UpsertMembershipByEmail("member@example.com", "pro-monthly", "active", time.Now().Add(30*24*time.Hour)); err != nil {
+		t.Fatalf("UpsertMembershipByEmail() error = %v", err)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("ExpectationsWereMet() error = %v", err)
+	}
+}
+
+func TestGrantCourseAccessByEmailPersistsToPostgres(t *testing.T) {
+	mock, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("pgxmock.NewPool() error = %v", err)
+	}
+	defer mock.Close()
+
+	repo := NewPostgresRepositoryWithPool(mock)
+
+	mock.ExpectExec("INSERT INTO profiles").
+		WithArgs(pgxmock.AnyArg(), "member@example.com", "member").
+		WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	mock.ExpectExec("INSERT INTO course_access").
+		WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), "stripe-webhook", "import-car-practice").
+		WillReturnResult(pgxmock.NewResult("INSERT", 1))
+
+	if err := repo.GrantCourseAccessByEmail("member@example.com", "import-car-practice", "stripe-webhook"); err != nil {
+		t.Fatalf("GrantCourseAccessByEmail() error = %v", err)
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/dto"
@@ -722,6 +723,45 @@ func (p *PostgresRepository) ResolveAuthContext(email string) (model.AuthContext
 	return context, true
 }
 
+func (p *PostgresRepository) UpsertMembershipByEmail(email string, planCode string, status string, renewsAt time.Time) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	profileID, err := p.ensureProfileByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+
+	_, err = p.pool.Exec(ctx, `
+		INSERT INTO memberships (id, profile_id, plan_code, status, renews_at, created_at)
+		VALUES ($1, $2, $3, $4, $5, NOW())
+		ON CONFLICT (profile_id, plan_code) DO UPDATE
+		SET status = EXCLUDED.status,
+		    renews_at = EXCLUDED.renews_at
+	`, uuid.New(), profileID, planCode, status, renewsAt)
+	return err
+}
+
+func (p *PostgresRepository) GrantCourseAccessByEmail(email string, courseSlug string, source string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	profileID, err := p.ensureProfileByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+
+	_, err = p.pool.Exec(ctx, `
+		INSERT INTO course_access (id, profile_id, course_id, source, created_at)
+		SELECT $1, $2, c.id, $3, NOW()
+		FROM courses c
+		WHERE c.slug = $4
+		ON CONFLICT (profile_id, course_id) DO UPDATE
+		SET source = EXCLUDED.source
+	`, uuid.New(), profileID, source, courseSlug)
+	return err
+}
+
 func (p *PostgresRepository) ensureDemoProfile(ctx context.Context) error {
 	_, err := p.pool.Exec(ctx, `
 		INSERT INTO profiles (id, email, full_name, created_at, updated_at)
@@ -729,4 +769,25 @@ func (p *PostgresRepository) ensureDemoProfile(ctx context.Context) error {
 		ON CONFLICT (id) DO NOTHING
 	`, demoProfileID, "demo@customs.local", "Demo Member")
 	return err
+}
+
+func (p *PostgresRepository) ensureProfileByEmail(ctx context.Context, email string) (uuid.UUID, error) {
+	normalized := strings.TrimSpace(strings.ToLower(email))
+	profileID := uuid.NewSHA1(uuid.NameSpaceURL, []byte("customs-auction-platform:"+normalized))
+	fullName := normalized
+	if localPart, _, ok := strings.Cut(normalized, "@"); ok && strings.TrimSpace(localPart) != "" {
+		fullName = localPart
+	}
+
+	_, err := p.pool.Exec(ctx, `
+		INSERT INTO profiles (id, email, full_name, created_at, updated_at)
+		VALUES ($1, $2, $3, NOW(), NOW())
+		ON CONFLICT (email) DO UPDATE
+		SET updated_at = NOW()
+	`, profileID, normalized, fullName)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return profileID, nil
 }

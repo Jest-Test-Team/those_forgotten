@@ -37,7 +37,12 @@ func NewServer() (*Server, error) {
 	}
 
 	adminEmails := parseAdminEmails(os.Getenv("ADMIN_EMAILS"))
-	svc := service.NewPlatformService(repo, adminEmails)
+	svc := service.NewPlatformService(
+		repo,
+		adminEmails,
+		os.Getenv("STRIPE_CHECKOUT_BASE_URL"),
+		os.Getenv("STRIPE_WEBHOOK_SECRET"),
+	)
 	ctl := controller.New(svc, os.Getenv("INTERNAL_INGEST_TOKEN"), os.Getenv("SUPABASE_JWT_SECRET"))
 
 	e.GET("/healthz", func(c echo.Context) error {

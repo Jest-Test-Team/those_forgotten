@@ -10,6 +10,12 @@ type WebPushSubscriptionInput struct {
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
+type CheckoutSessionInput struct {
+	Kind       string `json:"kind"`
+	PlanCode   string `json:"plan_code"`
+	CourseSlug string `json:"course_slug"`
+}
+
 type CommunityPostInput struct {
 	Title   string   `json:"title"`
 	Body    string   `json:"body"`
