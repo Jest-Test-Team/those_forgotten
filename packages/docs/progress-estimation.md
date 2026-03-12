@@ -21,7 +21,7 @@ The estimate intentionally does **not** claim `100%` yet. That would require com
 | API route coverage | 95% | strong | Main v1 endpoints exist, protected writes enforce auth, and readiness/health endpoints support deployment verification. |
 | Auth flow | 95% | strong | Supabase SSR login exists, browser/server protected requests send Bearer tokens, and protected API routes now reject fallback identity when JWT verification is configured. |
 | RBAC | 95% | strong | Web guard, API admin guard, DB-backed `user_roles`, and stricter protected-route identity enforcement are in place. |
-| Postgres persistence | 93% | strong | Member/admin writes, crawler runs, ingest change logs, Stripe entitlements, and notification jobs have durable Postgres paths. |
+| Postgres persistence | 95% | strong | Member/admin writes, crawler runs, ingest change logs, Stripe entitlements, and notification jobs have durable Postgres paths, and `api-go` now detects Supabase transaction pooler URLs for PgBouncer-compatible query mode. |
 | Crawler ingestion | 94% | strong | Per-office adapters, checksum validation, DB-backed ingest, change log persistence, crawler run tracking, notification job creation, and deploy-time ingest URL aliasing are wired. |
 | Historical pricing | 85% | strong | Schema/API/UI path exists and is launch-capable for forward-filled data, with retro backfill still optional rather than blocking. |
 | Calendar / ICS | 90% | strong | Signed feed endpoint and web UX are in place; remaining work is mostly polish and user-level token management. |
@@ -31,7 +31,7 @@ The estimate intentionally does **not** claim `100%` yet. That would require com
 | Push notifications | 95% | strong | Web push subscriptions are persisted, ingest creates notification jobs, and the worker now supports real VAPID delivery with simulate fallback. |
 | Security / compliance | 95% | strong | Disclaimers, CORS, rate limit, auth guard, strict Bearer enforcement on protected routes, RBAC bootstrap, and warning labels are in place. |
 | Tests | 92% | strong | Go unit/smoke coverage includes auth, billing, crawler persistence, notification queue, and readiness paths; browser E2E is the main remaining gap. |
-| Deployability | 95% | strong | Vercel/Supabase/Koyeb plan, Terraform scaffold, CI, deploy-smoke workflow, `readyz`, smoke scripts, Koyeb fix guide, and env matrix are all in place. |
+| Deployability | 96% | strong | Vercel/Supabase/Koyeb plan, Terraform scaffold, CI, deploy-smoke workflow, `readyz`, smoke scripts, Koyeb fix guide, env matrix, and Supabase pooler-ready examples are all in place. |
 
 ## What Is Effectively Done
 
@@ -45,6 +45,7 @@ The estimate intentionally does **not** claim `100%` yet. That would require com
 - Service-by-service env examples now align with the actual deploy targets and crawler ingest aliases.
 - Stripe checkout can create live sessions when real production credentials are present.
 - Notification delivery now supports real VAPID mode instead of simulate-only operation.
+- Supabase production examples and PgBouncer-compatible transaction-pooler handling are now aligned.
 
 ## What Is Only Partially Done
 
