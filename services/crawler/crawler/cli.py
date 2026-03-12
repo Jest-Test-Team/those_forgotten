@@ -9,13 +9,17 @@ from crawler.ingest import build_payload, send_payload
 from crawler.spiders.offices import all_spiders
 
 
+def default_ingest_endpoint() -> str:
+    return os.getenv("INGEST_URL") or os.getenv("INGEST_ENDPOINT") or "http://localhost:8080/internal/ingest/auctions"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run fixture-backed customs crawlers")
     parser.add_argument("--fixtures", default="fixtures", help="Fixture directory")
     parser.add_argument("--post", action="store_true", help="POST the normalized payload to the API")
     parser.add_argument(
         "--endpoint",
-        default=os.getenv("INGEST_ENDPOINT", "http://localhost:8080/internal/ingest/auctions"),
+        default=default_ingest_endpoint(),
         help="API endpoint for normalized ingestion",
     )
     parser.add_argument(

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import os
 from pathlib import Path
 import subprocess
 import threading
@@ -89,3 +90,24 @@ def test_cli_posts_payload_to_api() -> None:
     assert captured[0]["path"] == "/internal/ingest/auctions"
     assert captured[0]["headers"]["X-Ingest-Token"] == "demo-token"
     assert captured[0]["body"]["source"] == "fixtures"
+
+
+def test_cli_prefers_ingest_url_env_alias() -> None:
+    result = subprocess.run(
+        [
+            str(ROOT / ".venv" / "bin" / "python"),
+            "-c",
+            "from crawler.cli import default_ingest_endpoint; print(default_ingest_endpoint())",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        env={
+            **os.environ,
+            "INGEST_URL": "https://api.example.com/internal/ingest/auctions",
+            "INGEST_ENDPOINT": "http://should-not-win.example.com",
+        },
+    )
+
+    assert result.stdout.strip() == "https://api.example.com/internal/ingest/auctions"
