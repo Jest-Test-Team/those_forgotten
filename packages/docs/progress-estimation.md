@@ -10,6 +10,8 @@ Estimated on 2026-03-12.
 
 The repo now covers the planned v1 product surfaces and the main backend control paths at a near-launch level. The remaining `5%` is concentrated in rollout proof rather than missing architecture: first live secret provisioning, first end-to-end production smoke run, and a handful of operational edge paths.
 
+The estimate intentionally does **not** claim `100%` yet. That would require completed live deploy validation, real provider roundtrips, and browser E2E coverage, not just code completeness.
+
 ## Detailed Breakdown
 
 | Area | Progress | Status | Notes |
@@ -75,3 +77,13 @@ Reason:
 
 - The repo already covers most requested surfaces.
 - The missing work is concentrated in fewer but more sensitive areas: security, persistence completeness, billing, background delivery, and deployment hardening.
+
+## 100% Gate
+
+The repo can be updated to `100% / 100% / 100%` only after:
+
+1. the hosted stack is live and healthy
+2. deploy smoke checks pass against real URLs
+3. live Stripe checkout and webhook delivery are verified
+4. live VAPID notification delivery is verified
+5. browser E2E coverage exists for auth, purchase, and notification paths

@@ -75,6 +75,7 @@ This copies `packages/contracts/openapi.yaml` to `services/api-go/docs/swagger.y
 - Koyeb deployment fix guide: `packages/docs/koyeb-deploy.md`
 - Detailed progress estimate: `packages/docs/progress-estimation.md`
 - Environment matrix: `packages/docs/env-matrix.md`
+- Backend evolution guide: `packages/docs/backend-evolution.md`
 - Terraform scaffold: `infra/terraform`
 
 
