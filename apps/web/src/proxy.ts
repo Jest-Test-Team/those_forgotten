@@ -11,9 +11,15 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+  } catch {
+    // If Supabase is temporarily unavailable or misconfigured at the edge,
+    // do not crash protected routes with a 500. Let the page-level auth gate render.
+    return response;
+  }
 
   const isProtected = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
 
