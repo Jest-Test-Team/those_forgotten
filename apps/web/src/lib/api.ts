@@ -166,10 +166,15 @@ function getApiBaseUrl() {
   return process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 }
 
-async function safeFetch<T>(path: string, options?: { actorEmail?: string }): Promise<T | null> {
+async function safeFetch<T>(
+  path: string,
+  options?: { actorEmail?: string; accessToken?: string },
+): Promise<T | null> {
   try {
     const headers: HeadersInit = { Accept: "application/json" };
-    if (options?.actorEmail) {
+    if (options?.accessToken) {
+      headers.Authorization = `Bearer ${options.accessToken}`;
+    } else if (options?.actorEmail) {
       headers["X-Actor-Email"] = options.actorEmail;
     }
 
@@ -347,15 +352,18 @@ export async function getHomeData(): Promise<HomeData> {
   };
 }
 
-export async function getAdminDashboardData(actorEmail?: string): Promise<AdminDashboardData> {
+export async function getAdminDashboardData(options?: {
+  actorEmail?: string;
+  accessToken?: string;
+}): Promise<AdminDashboardData> {
   const [auctionResult, postResult, advisorResult, courseResult, moderationResult, advisorLeadResult, crawlerResult] = await Promise.all([
     getAuctions(),
     getCommunityPosts(),
     getAdvisors(),
     getCourses(),
-    safeFetch<JsonEnvelope<CommunityReportApiRecord[]>>("/v1/admin/community-reports", { actorEmail }),
-    safeFetch<JsonEnvelope<AdvisorLeadApiRecord[]>>("/v1/admin/advisor-leads", { actorEmail }),
-    safeFetch<JsonEnvelope<CrawlerStatusApiRecord[]>>("/v1/admin/crawler-status", { actorEmail }),
+    safeFetch<JsonEnvelope<CommunityReportApiRecord[]>>("/v1/admin/community-reports", options),
+    safeFetch<JsonEnvelope<AdvisorLeadApiRecord[]>>("/v1/admin/advisor-leads", options),
+    safeFetch<JsonEnvelope<CrawlerStatusApiRecord[]>>("/v1/admin/crawler-status", options),
   ]);
   const health = await safeFetch<HealthResponse>("/healthz");
 

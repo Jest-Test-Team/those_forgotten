@@ -23,7 +23,10 @@ export default async function AdminPage() {
     redirect("/member?denied=admin");
   }
 
-  const dashboard = await getAdminDashboardData(auth.email ?? undefined);
+  const dashboard = await getAdminDashboardData({
+    actorEmail: auth.email ?? undefined,
+    accessToken: auth.accessToken ?? undefined,
+  });
 
   return (
     <Shell>

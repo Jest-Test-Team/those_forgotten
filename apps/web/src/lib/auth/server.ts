@@ -5,6 +5,7 @@ export type ServerAuthContext = {
   isAuthenticated: boolean;
   isAdmin: boolean;
   email: string | null;
+  accessToken: string | null;
   role: string;
   capabilities: string[];
   source: string;
@@ -21,12 +22,17 @@ function getApiBaseUrl() {
   return process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 }
 
-async function getApiAuthContext(email: string) {
+async function getApiAuthContext(email: string, accessToken: string | null) {
   try {
+    const headers: HeadersInit = {
+      Accept: "application/json",
+    };
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+
     const response = await fetch(`${getApiBaseUrl()}/v1/auth/context?email=${encodeURIComponent(email)}`, {
-      headers: {
-        Accept: "application/json",
-      },
+      headers,
       cache: "no-store",
     });
 
@@ -60,29 +66,35 @@ export async function getServerAuthContext(): Promise<ServerAuthContext> {
   try {
     const supabase = await createServerSupabaseClient();
     const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const {
       data: { user },
     } = await supabase.auth.getUser();
 
     const email = user?.email?.toLowerCase() ?? null;
+    const accessToken = session?.access_token ?? null;
     if (!email) {
       return {
         enabled: true,
         isAuthenticated: false,
         isAdmin: false,
         email: null,
+        accessToken: null,
         role: "guest",
         capabilities: ["browse"],
         source: "supabase-session",
       };
     }
 
-    const apiContext = await getApiAuthContext(email);
+    const apiContext = await getApiAuthContext(email, accessToken);
     if (apiContext) {
       return {
         enabled: true,
         isAuthenticated: true,
         isAdmin: apiContext.role == "admin",
         email,
+        accessToken,
         role: apiContext.role,
         capabilities: apiContext.capabilities,
         source: apiContext.source,
@@ -97,6 +109,7 @@ export async function getServerAuthContext(): Promise<ServerAuthContext> {
       isAuthenticated: true,
       isAdmin: isAdmin,
       email,
+      accessToken,
       role: isAdmin ? "admin" : "member",
       capabilities: isAdmin ? ["browse", "member", "admin"] : ["browse", "member"],
       source: "web-fallback-allowlist",
@@ -107,6 +120,7 @@ export async function getServerAuthContext(): Promise<ServerAuthContext> {
       isAuthenticated: false,
       isAdmin: false,
       email: null,
+      accessToken: null,
       role: "guest",
       capabilities: ["browse"],
       source: "disabled",
