@@ -39,6 +39,11 @@ resource "koyeb_service" "api" {
     }
 
     env {
+      key   = "ADMIN_EMAILS"
+      value = var.admin_emails
+    }
+
+    env {
       key   = "INTERNAL_INGEST_TOKEN"
       value = var.internal_ingest_token
     }
