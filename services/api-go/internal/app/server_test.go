@@ -237,12 +237,15 @@ func TestCreateAdvisorLead(t *testing.T) {
 }
 
 func TestListAdvisorLeads(t *testing.T) {
+	t.Setenv("ADMIN_EMAILS", "admin@example.com")
+
 	server, err := NewServer()
 	if err != nil {
 		t.Fatalf("NewServer() error = %v", err)
 	}
 
 	req := httptest.NewRequest(http.MethodGet, "/v1/admin/advisor-leads", nil)
+	req.Header.Set("X-Actor-Email", "admin@example.com")
 	rec := httptest.NewRecorder()
 
 	server.Echo().ServeHTTP(rec, req)
@@ -270,12 +273,15 @@ func TestReportCommunityPost(t *testing.T) {
 }
 
 func TestListCommunityReports(t *testing.T) {
+	t.Setenv("ADMIN_EMAILS", "admin@example.com")
+
 	server, err := NewServer()
 	if err != nil {
 		t.Fatalf("NewServer() error = %v", err)
 	}
 
 	req := httptest.NewRequest(http.MethodGet, "/v1/admin/community-reports", nil)
+	req.Header.Set("X-Actor-Email", "admin@example.com")
 	rec := httptest.NewRecorder()
 
 	server.Echo().ServeHTTP(rec, req)
@@ -286,12 +292,15 @@ func TestListCommunityReports(t *testing.T) {
 }
 
 func TestResolveCommunityReport(t *testing.T) {
+	t.Setenv("ADMIN_EMAILS", "admin@example.com")
+
 	server, err := NewServer()
 	if err != nil {
 		t.Fatalf("NewServer() error = %v", err)
 	}
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/admin/community-reports/report-001/resolve", nil)
+	req.Header.Set("X-Actor-Email", "admin@example.com")
 	rec := httptest.NewRecorder()
 
 	server.Echo().ServeHTTP(rec, req)
@@ -302,17 +311,37 @@ func TestResolveCommunityReport(t *testing.T) {
 }
 
 func TestListCrawlerStatuses(t *testing.T) {
+	t.Setenv("ADMIN_EMAILS", "admin@example.com")
+
 	server, err := NewServer()
 	if err != nil {
 		t.Fatalf("NewServer() error = %v", err)
 	}
 
 	req := httptest.NewRequest(http.MethodGet, "/v1/admin/crawler-status", nil)
+	req.Header.Set("X-Actor-Email", "admin@example.com")
 	rec := httptest.NewRecorder()
 
 	server.Echo().ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
+func TestAdminRoutesRequireAdminRole(t *testing.T) {
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/community-reports", nil)
+	req.Header.Set("X-Actor-Email", "member@example.com")
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
 		t.Fatalf("ServeHTTP() code = %d", rec.Code)
 	}
 }

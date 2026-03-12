@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/dto"
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/service"
@@ -73,6 +74,24 @@ func (ctl *Controller) GetCalendarFeed(c echo.Context) error {
 
 func (ctl *Controller) GetAuthContext(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]any{"data": ctl.service.GetAuthContext(c.QueryParam("email"))})
+}
+
+func (ctl *Controller) actorEmail(c echo.Context) string {
+	headerEmail := strings.TrimSpace(c.Request().Header.Get("X-Actor-Email"))
+	if headerEmail != "" {
+		return headerEmail
+	}
+
+	return c.QueryParam("email")
+}
+
+func (ctl *Controller) requireAdmin(c echo.Context) error {
+	context := ctl.service.GetAuthContext(ctl.actorEmail(c))
+	if context.Role != "admin" {
+		return c.JSON(http.StatusForbidden, map[string]any{"error": "admin role required"})
+	}
+
+	return nil
 }
 
 func (ctl *Controller) ListKeywordSubscriptions(c echo.Context) error {
@@ -158,10 +177,18 @@ func (ctl *Controller) ReportCommunityPost(c echo.Context) error {
 }
 
 func (ctl *Controller) ListCommunityReports(c echo.Context) error {
+	if err := ctl.requireAdmin(c); err != nil {
+		return err
+	}
+
 	return c.JSON(http.StatusOK, map[string]any{"data": ctl.service.ListCommunityReports()})
 }
 
 func (ctl *Controller) ResolveCommunityReport(c echo.Context) error {
+	if err := ctl.requireAdmin(c); err != nil {
+		return err
+	}
+
 	report, ok := ctl.service.ResolveCommunityReport(c.Param("id"))
 	if !ok {
 		return c.JSON(http.StatusNotFound, map[string]any{"error": "report not found"})
@@ -171,6 +198,10 @@ func (ctl *Controller) ResolveCommunityReport(c echo.Context) error {
 }
 
 func (ctl *Controller) ListCrawlerStatuses(c echo.Context) error {
+	if err := ctl.requireAdmin(c); err != nil {
+		return err
+	}
+
 	return c.JSON(http.StatusOK, map[string]any{"data": ctl.service.ListCrawlerStatuses()})
 }
 
@@ -179,6 +210,10 @@ func (ctl *Controller) ListAdvisors(c echo.Context) error {
 }
 
 func (ctl *Controller) ListAdvisorLeads(c echo.Context) error {
+	if err := ctl.requireAdmin(c); err != nil {
+		return err
+	}
+
 	return c.JSON(http.StatusOK, map[string]any{"data": ctl.service.ListAdvisorLeads()})
 }
 
