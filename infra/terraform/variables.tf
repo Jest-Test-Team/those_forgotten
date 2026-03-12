@@ -115,10 +115,40 @@ variable "stripe_checkout_base_url" {
   description = "Base checkout URL used until live Stripe API session creation is enabled."
 }
 
+variable "stripe_secret_key" {
+  type        = string
+  sensitive   = true
+  description = "Stripe secret key used to create live checkout sessions."
+}
+
 variable "stripe_webhook_secret" {
   type        = string
   sensitive   = true
   description = "Stripe webhook signing secret used by api-go."
+}
+
+variable "stripe_success_url" {
+  type        = string
+  default     = "https://customs-auction.example.com/member?checkout=success"
+  description = "Stripe checkout success redirect."
+}
+
+variable "stripe_cancel_url" {
+  type        = string
+  default     = "https://customs-auction.example.com/member?checkout=cancel"
+  description = "Stripe checkout cancel redirect."
+}
+
+variable "stripe_membership_price_id" {
+  type        = string
+  sensitive   = true
+  description = "Stripe price id used for membership checkout."
+}
+
+variable "stripe_course_price_id" {
+  type        = string
+  sensitive   = true
+  description = "Stripe price id used for course checkout."
 }
 
 variable "web_origin" {

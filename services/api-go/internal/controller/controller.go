@@ -245,7 +245,12 @@ func (ctl *Controller) CreateCheckoutSession(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "checkout kind requires plan_code or course_slug"})
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{"data": ctl.service.CheckoutSession(auth.Email, input)})
+	session, err := ctl.service.CheckoutSession(auth.Email, input)
+	if err != nil {
+		return c.JSON(http.StatusBadGateway, map[string]any{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, map[string]any{"data": session})
 }
 
 func (ctl *Controller) StripeWebhook(c echo.Context) error {

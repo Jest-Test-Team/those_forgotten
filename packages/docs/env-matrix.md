@@ -32,13 +32,19 @@ Notes:
 - `INTERNAL_INGEST_TOKEN`
 - `SUPABASE_JWT_SECRET`
 - `STRIPE_CHECKOUT_BASE_URL`
+- `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_SUCCESS_URL`
+- `STRIPE_CANCEL_URL`
+- `STRIPE_MEMBERSHIP_PRICE_ID`
+- `STRIPE_COURSE_PRICE_ID`
 
 Notes:
 
 - `DATABASE_URL` is required for production persistence, admin RBAC bootstrap, notification jobs, and worker processing.
 - `SUPABASE_JWT_SECRET` is required if admin/member API routes should trust Bearer tokens from Supabase.
-- `STRIPE_CHECKOUT_BASE_URL` is a temporary structured checkout target until live Stripe session creation is enabled.
+- If `STRIPE_SECRET_KEY`, price ids, and redirect URLs are present, `POST /v1/stripe/checkout` now creates a live Stripe Checkout Session.
+- `STRIPE_CHECKOUT_BASE_URL` remains as the fallback path when live Stripe credentials are not present.
 
 ## `services/crawler`
 

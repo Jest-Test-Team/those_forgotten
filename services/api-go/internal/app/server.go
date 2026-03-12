@@ -41,7 +41,12 @@ func NewServer() (*Server, error) {
 		repo,
 		adminEmails,
 		os.Getenv("STRIPE_CHECKOUT_BASE_URL"),
+		os.Getenv("STRIPE_SECRET_KEY"),
 		os.Getenv("STRIPE_WEBHOOK_SECRET"),
+		os.Getenv("STRIPE_SUCCESS_URL"),
+		os.Getenv("STRIPE_CANCEL_URL"),
+		os.Getenv("STRIPE_MEMBERSHIP_PRICE_ID"),
+		os.Getenv("STRIPE_COURSE_PRICE_ID"),
 	)
 	ctl := controller.New(svc, os.Getenv("INTERNAL_INGEST_TOKEN"), os.Getenv("SUPABASE_JWT_SECRET"))
 

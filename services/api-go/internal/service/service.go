@@ -11,6 +11,8 @@ import (
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/model"
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/repository"
 	"github.com/google/uuid"
+	"github.com/stripe/stripe-go/v82"
+	stripecheckoutsession "github.com/stripe/stripe-go/v82/checkout/session"
 	"github.com/stripe/stripe-go/v82/webhook"
 )
 
@@ -18,15 +20,35 @@ type PlatformService struct {
 	repo                  repository.Repository
 	adminEmails           []string
 	stripeCheckoutBaseURL string
+	stripeSecretKey       string
 	stripeWebhookSecret   string
+	stripeSuccessURL      string
+	stripeCancelURL       string
+	stripeMembershipPrice string
+	stripeCoursePrice     string
 }
 
-func NewPlatformService(repo repository.Repository, adminEmails []string, stripeCheckoutBaseURL string, stripeWebhookSecret string) *PlatformService {
+func NewPlatformService(
+	repo repository.Repository,
+	adminEmails []string,
+	stripeCheckoutBaseURL string,
+	stripeSecretKey string,
+	stripeWebhookSecret string,
+	stripeSuccessURL string,
+	stripeCancelURL string,
+	stripeMembershipPrice string,
+	stripeCoursePrice string,
+) *PlatformService {
 	return &PlatformService{
 		repo:                  repo,
 		adminEmails:           adminEmails,
 		stripeCheckoutBaseURL: stripeCheckoutBaseURL,
+		stripeSecretKey:       stripeSecretKey,
 		stripeWebhookSecret:   stripeWebhookSecret,
+		stripeSuccessURL:      stripeSuccessURL,
+		stripeCancelURL:       stripeCancelURL,
+		stripeMembershipPrice: stripeMembershipPrice,
+		stripeCoursePrice:     stripeCoursePrice,
 	}
 }
 
@@ -82,16 +104,67 @@ func (s *PlatformService) ListCourses() []model.Course {
 	return s.repo.ListCourses()
 }
 
-func (s *PlatformService) CheckoutSession(email string, input *dto.CheckoutSessionInput) map[string]string {
+func (s *PlatformService) CheckoutSession(email string, input *dto.CheckoutSessionInput) (map[string]string, error) {
 	baseURL := strings.TrimSpace(s.stripeCheckoutBaseURL)
 	if baseURL == "" {
 		baseURL = "https://checkout.stripe.com/pay/cs_test_example"
 	}
 
+	kind := strings.TrimSpace(strings.ToLower(input.Kind))
+	priceID := ""
+	mode := stripe.CheckoutSessionModePayment
+	switch kind {
+	case "membership":
+		priceID = strings.TrimSpace(s.stripeMembershipPrice)
+		mode = stripe.CheckoutSessionModeSubscription
+	case "course":
+		priceID = strings.TrimSpace(s.stripeCoursePrice)
+	default:
+		return nil, errors.New("unsupported checkout kind")
+	}
+
+	if strings.TrimSpace(s.stripeSecretKey) != "" &&
+		priceID != "" &&
+		strings.TrimSpace(s.stripeSuccessURL) != "" &&
+		strings.TrimSpace(s.stripeCancelURL) != "" {
+		stripe.Key = s.stripeSecretKey
+		params := &stripe.CheckoutSessionParams{
+			SuccessURL:    stripe.String(s.stripeSuccessURL),
+			CancelURL:     stripe.String(s.stripeCancelURL),
+			CustomerEmail: stripe.String(strings.TrimSpace(strings.ToLower(email))),
+			Mode:          stripe.String(string(mode)),
+			Metadata: map[string]string{
+				"kind":        kind,
+				"email":       strings.TrimSpace(strings.ToLower(email)),
+				"plan_code":   strings.TrimSpace(input.PlanCode),
+				"course_slug": strings.TrimSpace(input.CourseSlug),
+			},
+			LineItems: []*stripe.CheckoutSessionLineItemParams{
+				{
+					Price:    stripe.String(priceID),
+					Quantity: stripe.Int64(1),
+				},
+			},
+		}
+
+		session, err := stripecheckoutsession.New(params)
+		if err != nil {
+			return nil, err
+		}
+
+		return map[string]string{
+			"provider":  "stripe",
+			"url":       session.URL,
+			"reference": session.ID,
+			"kind":      kind,
+			"mode":      "live",
+		}, nil
+	}
+
 	values := url.Values{}
 	values.Set("reference", uuid.NewString())
 	values.Set("prefilled_email", strings.TrimSpace(strings.ToLower(email)))
-	values.Set("kind", strings.TrimSpace(strings.ToLower(input.Kind)))
+	values.Set("kind", kind)
 	if strings.TrimSpace(input.PlanCode) != "" {
 		values.Set("plan_code", strings.TrimSpace(input.PlanCode))
 	}
@@ -109,7 +182,8 @@ func (s *PlatformService) CheckoutSession(email string, input *dto.CheckoutSessi
 		"url":       baseURL + separator + values.Encode(),
 		"reference": values.Get("reference"),
 		"kind":      values.Get("kind"),
-	}
+		"mode":      "fallback",
+	}, nil
 }
 
 func (s *PlatformService) HandleStripeWebhook(signature string, payload []byte) (map[string]any, error) {

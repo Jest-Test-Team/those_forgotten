@@ -64,8 +64,33 @@ resource "koyeb_service" "api" {
     }
 
     env {
+      key   = "STRIPE_SECRET_KEY"
+      value = var.stripe_secret_key
+    }
+
+    env {
       key   = "STRIPE_WEBHOOK_SECRET"
       value = var.stripe_webhook_secret
+    }
+
+    env {
+      key   = "STRIPE_SUCCESS_URL"
+      value = var.stripe_success_url
+    }
+
+    env {
+      key   = "STRIPE_CANCEL_URL"
+      value = var.stripe_cancel_url
+    }
+
+    env {
+      key   = "STRIPE_MEMBERSHIP_PRICE_ID"
+      value = var.stripe_membership_price_id
+    }
+
+    env {
+      key   = "STRIPE_COURSE_PRICE_ID"
+      value = var.stripe_course_price_id
     }
 
     image = var.api_image
