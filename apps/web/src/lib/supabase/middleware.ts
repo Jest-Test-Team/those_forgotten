@@ -1,11 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
+import { getSupabaseConfig } from "@/lib/supabase/config";
 import { NextResponse, type NextRequest } from "next/server";
 
 export function updateSession(request: NextRequest) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !anonKey) {
+  const config = getSupabaseConfig();
+  if (!config) {
     return {
       response: NextResponse.next({
         request,
@@ -18,7 +17,7 @@ export function updateSession(request: NextRequest) {
     request,
   });
 
-  const supabase = createServerClient(url, anonKey, {
+  const supabase = createServerClient(config.url, config.anonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
