@@ -97,10 +97,28 @@ variable "internal_ingest_token" {
   description = "Shared secret for crawler -> API ingest."
 }
 
+variable "database_url" {
+  type        = string
+  sensitive   = true
+  description = "Postgres connection string used by api-go."
+}
+
 variable "supabase_jwt_secret" {
   type        = string
   sensitive   = true
   description = "JWT secret used by api-go to verify Supabase access tokens."
+}
+
+variable "stripe_checkout_base_url" {
+  type        = string
+  default     = "https://checkout.stripe.com/pay/cs_test_example"
+  description = "Base checkout URL used until live Stripe API session creation is enabled."
+}
+
+variable "stripe_webhook_secret" {
+  type        = string
+  sensitive   = true
+  description = "Stripe webhook signing secret used by api-go."
 }
 
 variable "web_origin" {

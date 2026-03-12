@@ -39,6 +39,11 @@ resource "koyeb_service" "api" {
     }
 
     env {
+      key   = "DATABASE_URL"
+      value = var.database_url
+    }
+
+    env {
       key   = "ADMIN_EMAILS"
       value = var.admin_emails
     }
@@ -51,6 +56,16 @@ resource "koyeb_service" "api" {
     env {
       key   = "SUPABASE_JWT_SECRET"
       value = var.supabase_jwt_secret
+    }
+
+    env {
+      key   = "STRIPE_CHECKOUT_BASE_URL"
+      value = var.stripe_checkout_base_url
+    }
+
+    env {
+      key   = "STRIPE_WEBHOOK_SECRET"
+      value = var.stripe_webhook_secret
     }
 
     image = var.api_image

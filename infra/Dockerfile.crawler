@@ -1,5 +1,6 @@
 FROM python:3.13-slim
 WORKDIR /app
+ENV PYTHONUNBUFFERED=1
 
 COPY services/crawler/pyproject.toml ./
 COPY services/crawler/README.md ./

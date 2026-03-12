@@ -52,6 +52,16 @@ func NewServer() (*Server, error) {
 		})
 	})
 
+	e.GET("/", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]any{
+			"service":    "those-forgotten-api",
+			"status":     "ok",
+			"repository": repositoryMode,
+			"healthz":    "/healthz",
+			"readyz":     "/readyz",
+		})
+	})
+
 	e.GET("/readyz", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]any{
 			"status":                  "ready",

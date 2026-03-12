@@ -11,6 +11,7 @@ FROM alpine:3.21
 RUN adduser -D appuser
 USER appuser
 WORKDIR /app
+ENV PORT=8080
 
 COPY --from=builder /bin/api ./api
 
