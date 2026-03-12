@@ -24,7 +24,10 @@ export default async function MemberPage({ searchParams }: Props) {
   ] = await Promise.all([
     getAuctions(),
     getCourses(),
-    getKeywordSubscriptions(),
+    getKeywordSubscriptions({
+      actorEmail: auth.email ?? undefined,
+      accessToken: auth.accessToken ?? undefined,
+    }),
   ]);
 
   return (

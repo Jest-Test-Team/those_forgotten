@@ -1,19 +1,51 @@
+import { createBrowserSupabaseClient } from "@/lib/supabase/client";
+
 type MutationResult = {
   ok: boolean;
   message: string;
 };
 
+let browserSupabaseClient: ReturnType<typeof createBrowserSupabaseClient> | null = null;
+
 function getApiBaseUrl() {
   return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+}
+
+function getSupabaseClient() {
+  if (!browserSupabaseClient) {
+    browserSupabaseClient = createBrowserSupabaseClient();
+  }
+
+  return browserSupabaseClient;
+}
+
+async function getAuthHeaders(includeJson: boolean): Promise<HeadersInit> {
+  const headers: HeadersInit = {};
+  if (includeJson) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  try {
+    const client = getSupabaseClient();
+    const {
+      data: { session },
+    } = await client.auth.getSession();
+
+    if (session?.access_token) {
+      headers.Authorization = `Bearer ${session.access_token}`;
+    }
+  } catch {
+    // Keep unauthenticated fallback behavior for local/demo flows.
+  }
+
+  return headers;
 }
 
 async function postJson(path: string, payload: unknown, fallbackMessage: string): Promise<MutationResult> {
   try {
     const response = await fetch(`${getApiBaseUrl()}${path}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: await getAuthHeaders(true),
       body: JSON.stringify(payload),
     });
 
@@ -41,6 +73,7 @@ async function deleteRequest(path: string, fallbackMessage: string): Promise<Mut
   try {
     const response = await fetch(`${getApiBaseUrl()}${path}`, {
       method: "DELETE",
+      headers: await getAuthHeaders(false),
     });
 
     if (!response.ok) {

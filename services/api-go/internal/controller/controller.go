@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/dto"
+	"github.com/dennislee928/those_forgotten/services/api-go/internal/model"
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/service"
 	"github.com/golang-jwt/jwt/v5"
 	echo "github.com/labstack/echo/v4"
@@ -145,11 +146,28 @@ func (ctl *Controller) requireAdmin(c echo.Context) error {
 	return nil
 }
 
+func (ctl *Controller) requireMember(c echo.Context) (model.AuthContext, error) {
+	context := ctl.service.GetAuthContext(ctl.actorEmail(c))
+	if context.Role == "guest" {
+		return context, c.JSON(http.StatusUnauthorized, map[string]any{"error": "authenticated member required"})
+	}
+
+	return context, nil
+}
+
 func (ctl *Controller) ListKeywordSubscriptions(c echo.Context) error {
+	if _, err := ctl.requireMember(c); err != nil {
+		return err
+	}
+
 	return c.JSON(http.StatusOK, map[string]any{"data": ctl.service.ListKeywordSubscriptions()})
 }
 
 func (ctl *Controller) CreateKeywordSubscription(c echo.Context) error {
+	if _, err := ctl.requireMember(c); err != nil {
+		return err
+	}
+
 	input := new(dto.KeywordSubscriptionInput)
 	if err := c.Bind(input); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid payload"})
@@ -162,11 +180,19 @@ func (ctl *Controller) CreateKeywordSubscription(c echo.Context) error {
 }
 
 func (ctl *Controller) DeleteKeywordSubscription(c echo.Context) error {
+	if _, err := ctl.requireMember(c); err != nil {
+		return err
+	}
+
 	ctl.service.DeleteKeywordSubscription(c.Param("id"))
 	return c.NoContent(http.StatusNoContent)
 }
 
 func (ctl *Controller) CreateWebPushSubscription(c echo.Context) error {
+	if _, err := ctl.requireMember(c); err != nil {
+		return err
+	}
+
 	input := new(dto.WebPushSubscriptionInput)
 	if err := c.Bind(input); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid payload"})
@@ -192,6 +218,10 @@ func (ctl *Controller) ListCourses(c echo.Context) error {
 }
 
 func (ctl *Controller) CreateCheckoutSession(c echo.Context) error {
+	if _, err := ctl.requireMember(c); err != nil {
+		return err
+	}
+
 	return c.JSON(http.StatusOK, map[string]any{"data": ctl.service.CheckoutSession()})
 }
 
@@ -204,6 +234,10 @@ func (ctl *Controller) ListCommunityPosts(c echo.Context) error {
 }
 
 func (ctl *Controller) CreateCommunityPost(c echo.Context) error {
+	if _, err := ctl.requireMember(c); err != nil {
+		return err
+	}
+
 	input := new(dto.CommunityPostInput)
 	if err := c.Bind(input); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid payload"})
@@ -216,6 +250,10 @@ func (ctl *Controller) CreateCommunityPost(c echo.Context) error {
 }
 
 func (ctl *Controller) ReportCommunityPost(c echo.Context) error {
+	if _, err := ctl.requireMember(c); err != nil {
+		return err
+	}
+
 	input := new(dto.ReportInput)
 	if err := c.Bind(input); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid payload"})

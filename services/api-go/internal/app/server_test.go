@@ -174,7 +174,7 @@ func TestListKeywordSubscriptions(t *testing.T) {
 		t.Fatalf("NewServer() error = %v", err)
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/v1/keyword-subscriptions", nil)
+	req := httptest.NewRequest(http.MethodGet, "/v1/keyword-subscriptions?email=member@example.com", nil)
 	rec := httptest.NewRecorder()
 
 	server.Echo().ServeHTTP(rec, req)
@@ -190,7 +190,7 @@ func TestCreateKeywordSubscriptionValidatesKeyword(t *testing.T) {
 		t.Fatalf("NewServer() error = %v", err)
 	}
 
-	req := httptest.NewRequest(http.MethodPost, "/v1/keyword-subscriptions", bytes.NewBufferString(`{"keyword":" "}`))
+	req := httptest.NewRequest(http.MethodPost, "/v1/keyword-subscriptions?email=member@example.com", bytes.NewBufferString(`{"keyword":" "}`))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
 
@@ -227,7 +227,7 @@ func TestCreateWebPushSubscription(t *testing.T) {
 		t.Fatalf("NewServer() error = %v", err)
 	}
 
-	req := httptest.NewRequest(http.MethodPost, "/v1/web-push-subscriptions", bytes.NewBufferString(`{"endpoint":"https://push.example.dev/demo","keys":{"p256dh":"demo","auth":"secret"}}`))
+	req := httptest.NewRequest(http.MethodPost, "/v1/web-push-subscriptions?email=member@example.com", bytes.NewBufferString(`{"endpoint":"https://push.example.dev/demo","keys":{"p256dh":"demo","auth":"secret"}}`))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
 
@@ -244,7 +244,7 @@ func TestCreateCommunityPost(t *testing.T) {
 		t.Fatalf("NewServer() error = %v", err)
 	}
 
-	req := httptest.NewRequest(http.MethodPost, "/v1/community/posts", bytes.NewBufferString(`{"title":"看貨紀錄","body":"鏡頭有刮痕","office":"臺北關"}`))
+	req := httptest.NewRequest(http.MethodPost, "/v1/community/posts?email=member@example.com", bytes.NewBufferString(`{"title":"看貨紀錄","body":"鏡頭有刮痕","office":"臺北關"}`))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
 
@@ -297,7 +297,7 @@ func TestReportCommunityPost(t *testing.T) {
 		t.Fatalf("NewServer() error = %v", err)
 	}
 
-	req := httptest.NewRequest(http.MethodPost, "/v1/community/posts/post-001/report", bytes.NewBufferString(`{"reason":"疑似內容不實"}`))
+	req := httptest.NewRequest(http.MethodPost, "/v1/community/posts/post-001/report?email=member@example.com", bytes.NewBufferString(`{"reason":"疑似內容不實"}`))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
 
@@ -378,6 +378,22 @@ func TestAdminRoutesRequireAdminRole(t *testing.T) {
 	server.Echo().ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusForbidden {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
+func TestMemberRoutesRequireAuthentication(t *testing.T) {
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/keyword-subscriptions", nil)
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnauthorized {
 		t.Fatalf("ServeHTTP() code = %d", rec.Code)
 	}
 }

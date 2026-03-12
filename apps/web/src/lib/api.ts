@@ -306,8 +306,11 @@ export async function getCourses(): Promise<{ courses: typeof seedCourses; sourc
   };
 }
 
-export async function getKeywordSubscriptions(): Promise<{ subscriptions: KeywordSubscription[]; source: DataSource }> {
-  const response = await safeFetch<JsonEnvelope<KeywordSubscriptionApiRecord[]>>("/v1/keyword-subscriptions");
+export async function getKeywordSubscriptions(options?: {
+  actorEmail?: string;
+  accessToken?: string;
+}): Promise<{ subscriptions: KeywordSubscription[]; source: DataSource }> {
+  const response = await safeFetch<JsonEnvelope<KeywordSubscriptionApiRecord[]>>("/v1/keyword-subscriptions", options);
   if (!response?.data?.length) {
     return {
       subscriptions: [
