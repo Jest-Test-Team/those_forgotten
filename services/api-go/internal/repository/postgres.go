@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -530,7 +531,46 @@ func (p *PostgresRepository) ListAdvisorLeads() []model.AdvisorLead {
 }
 
 func (p *PostgresRepository) ListCrawlerStatuses() []model.CrawlerStatus {
-	return p.memory.ListCrawlerStatuses()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := p.pool.Query(ctx, `
+		SELECT office, status, ran_at::text, COALESCE(next_run_at, ran_at)::text, checksum, row_count, trigger_source
+		FROM (
+			SELECT office, status, ran_at, next_run_at, checksum, row_count, trigger_source,
+			       ROW_NUMBER() OVER (PARTITION BY office ORDER BY ran_at DESC) AS row_num
+			FROM crawler_runs
+		) latest
+		WHERE row_num = 1
+		ORDER BY office
+	`)
+	if err != nil {
+		return p.memory.ListCrawlerStatuses()
+	}
+	defer rows.Close()
+
+	statuses := []model.CrawlerStatus{}
+	for rows.Next() {
+		var status model.CrawlerStatus
+		if err := rows.Scan(
+			&status.Office,
+			&status.Status,
+			&status.LastRunAt,
+			&status.NextRunAt,
+			&status.LastChecksum,
+			&status.LastRowCount,
+			&status.TriggerSource,
+		); err != nil {
+			return p.memory.ListCrawlerStatuses()
+		}
+		statuses = append(statuses, status)
+	}
+
+	if len(statuses) == 0 {
+		return p.memory.ListCrawlerStatuses()
+	}
+
+	return statuses
 }
 
 func (p *PostgresRepository) CreateAdvisorLead(input *dto.AdvisorLeadInput) model.AdvisorLead {
@@ -572,6 +612,8 @@ func (p *PostgresRepository) IngestAuctions(input *dto.IngestPayload) map[string
 	}
 	defer tx.Rollback(ctx)
 
+	officeRowCounts := map[string]int{}
+
 	for _, row := range input.Rows {
 		announcementID := uuid.NewSHA1(uuid.NameSpaceURL, []byte(fmt.Sprintf("%s:%s", input.Source, row.AnnouncementNo)))
 		lotID := uuid.NewSHA1(uuid.NameSpaceURL, []byte(fmt.Sprintf("%s:%s:lot", input.Source, row.AnnouncementNo)))
@@ -599,6 +641,37 @@ func (p *PostgresRepository) IngestAuctions(input *dto.IngestPayload) map[string
 			    closing_at = EXCLUDED.closing_at,
 			    warning_tags = EXCLUDED.warning_tags
 		`, lotID, announcementID, row.Title, row.Category, row.ClosingAt, row.Warnings)
+		if err != nil {
+			return p.memory.IngestAuctions(input)
+		}
+
+		changeSummary, err := json.Marshal(map[string]any{
+			"source":     input.Source,
+			"title":      row.Title,
+			"category":   row.Category,
+			"closing_at": row.ClosingAt,
+			"warnings":   row.Warnings,
+		})
+		if err != nil {
+			return p.memory.IngestAuctions(input)
+		}
+
+		_, err = tx.Exec(ctx, `
+			INSERT INTO auction_change_log (id, auction_lot_id, checksum, change_summary, created_at)
+			VALUES ($1, $2, $3, $4::jsonb, NOW())
+		`, uuid.New(), lotID, input.Checksum, string(changeSummary))
+		if err != nil {
+			return p.memory.IngestAuctions(input)
+		}
+
+		officeRowCounts[row.Office]++
+	}
+
+	for office, rowCount := range officeRowCounts {
+		_, err = tx.Exec(ctx, `
+			INSERT INTO crawler_runs (id, source, office, checksum, row_count, status, trigger_source, ran_at, next_run_at)
+			VALUES ($1, $2, $3, $4, $5, 'healthy', $6, NOW(), NOW() + INTERVAL '30 minutes')
+		`, uuid.New(), input.Source, office, input.Checksum, rowCount, input.Source)
 		if err != nil {
 			return p.memory.IngestAuctions(input)
 		}

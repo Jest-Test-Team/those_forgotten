@@ -269,6 +269,36 @@ func TestResolveAuthContextReadsUserRolesFromPostgres(t *testing.T) {
 	}
 }
 
+func TestListCrawlerStatusesReadsLatestRunsFromPostgres(t *testing.T) {
+	mock, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("pgxmock.NewPool() error = %v", err)
+	}
+	defer mock.Close()
+
+	repo := NewPostgresRepositoryWithPool(mock)
+
+	rows := pgxmock.NewRows([]string{"office", "status", "ran_at", "next_run_at", "checksum", "row_count", "trigger_source"}).
+		AddRow("臺北關", "healthy", "2026-03-12T09:00:00Z", "2026-03-12T09:30:00Z", "checksum-a", 6, "fixtures").
+		AddRow("高雄關", "warning", "2026-03-12T09:10:00Z", "2026-03-12T09:40:00Z", "checksum-b", 0, "retry")
+
+	mock.ExpectQuery("SELECT office, status, ran_at::text, COALESCE\\(next_run_at, ran_at\\)::text, checksum, row_count, trigger_source").
+		WillReturnRows(rows)
+
+	result := repo.ListCrawlerStatuses()
+
+	if len(result) != 2 {
+		t.Fatalf("len(result) = %d", len(result))
+	}
+	if result[0].Office != "臺北關" {
+		t.Fatalf("result[0].Office = %q", result[0].Office)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("ExpectationsWereMet() error = %v", err)
+	}
+}
+
 func TestIngestAuctionsPersistsAnnouncementAndLot(t *testing.T) {
 	mock, err := pgxmock.NewPool()
 	if err != nil {
@@ -297,6 +327,24 @@ func TestIngestAuctionsPersistsAnnouncementAndLot(t *testing.T) {
 			"3C",
 			"2026-03-16T14:00:00+08:00",
 			[]string{"現狀交付", "不負瑕疵擔保"},
+		).
+		WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	mock.ExpectExec("INSERT INTO auction_change_log").
+		WithArgs(
+			pgxmock.AnyArg(),
+			pgxmock.AnyArg(),
+			"demo-checksum",
+			pgxmock.AnyArg(),
+		).
+		WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	mock.ExpectExec("INSERT INTO crawler_runs").
+		WithArgs(
+			pgxmock.AnyArg(),
+			"fixtures",
+			"臺北關",
+			"demo-checksum",
+			1,
+			"fixtures",
 		).
 		WillReturnResult(pgxmock.NewResult("INSERT", 1))
 	mock.ExpectCommit()
