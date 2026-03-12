@@ -61,6 +61,24 @@ make stack-prod-up
 make stack-prod-logs
 ```
 
+## Robot Live Tests
+
+```bash
+make robot-bootstrap
+make robot-live-test
+```
+
+Default targets hit:
+
+- `https://comfortable-adelind-dennis-team-1d8552ab.koyeb.app`
+- `https://those-forgotten.vercel.app`
+
+Override with:
+
+```bash
+ROBOT_API_BASE_URL=https://api.example.com ROBOT_WEB_BASE_URL=https://app.example.com make robot-live-test
+```
+
 ## Role Management
 
 ```bash

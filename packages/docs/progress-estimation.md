@@ -30,7 +30,7 @@ The estimate intentionally does **not** claim `100%` yet. That would require com
 | Monetization | 95% | strong | Typed Stripe checkout payloads, live Checkout Session support, webhook processing, and membership/course entitlement persistence are now in place. |
 | Push notifications | 95% | strong | Web push subscriptions are persisted, ingest creates notification jobs, and the worker now supports real VAPID delivery with simulate fallback. |
 | Security / compliance | 96% | strong | Disclaimers, CORS, rate limit, auth guard, strict Bearer enforcement on protected routes, RBAC bootstrap, warning labels, request limits, timeout baselines, and cookie mutation origin checks are in place. |
-| Tests | 93% | strong | Go unit/smoke coverage includes auth, billing, crawler persistence, notification queue, readiness paths, and Swagger route checks; browser E2E is the main remaining gap. |
+| Tests | 94% | strong | Go unit/smoke coverage includes auth, billing, crawler persistence, notification queue, readiness paths, Swagger route checks, and Robot Framework live smoke coverage for hosted API/web routes; browser E2E is the main remaining gap. |
 | Deployability | 97% | strong | Vercel/Supabase/Koyeb plan, Terraform scaffold, CI, deploy-smoke workflow, `readyz`, smoke scripts, Koyeb fix guide, env matrix, seed flow, Swagger testing path, and Supabase pooler-ready examples are all in place. |
 | Internal services evolution | 94% | strong | Shared proto contracts and tonic-based Rust service scaffolds now exist for matcher, policy, push, and feed workloads. |
 
@@ -48,6 +48,7 @@ The estimate intentionally does **not** claim `100%` yet. That would require com
 - Notification delivery now supports real VAPID mode instead of simulate-only operation.
 - Supabase production examples and PgBouncer-compatible transaction-pooler handling are now aligned.
 - A production-like compose override, hosted secrets checklist, DB seed command, Swagger UI test surface, and tonic-based Rust internal service scaffolds now exist.
+- Robot Framework live suites now cover hosted API smoke/authz paths and hosted web public/protected route regressions.
 
 ## What Is Only Partially Done
 
@@ -62,6 +63,7 @@ The estimate intentionally does **not** claim `100%` yet. That would require com
 4. Validate live VAPID push delivery from `notify-worker`.
 5. Add browser E2E coverage for login, purchases, and notification-critical paths.
 6. Promote the Rust scaffolds from compile-ready tonic services to real Kafka/Redis-connected workers.
+7. Fix the current hosted frontend regression where `/member` and `/admin` return `500`.
 
 ## Suggested Next 5 Execution Steps
 

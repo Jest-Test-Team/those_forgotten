@@ -30,3 +30,4 @@ override.tf.json
 terraform.tfvars
 terraform.tfvars.json
 note.txt
+test/results/
