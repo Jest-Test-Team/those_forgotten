@@ -52,6 +52,16 @@ func NewServer() (*Server, error) {
 		})
 	})
 
+	e.GET("/readyz", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]any{
+			"status":                  "ready",
+			"repository":              repositoryMode,
+			"jwtAuthConfigured":       os.Getenv("SUPABASE_JWT_SECRET") != "",
+			"stripeWebhookConfigured": os.Getenv("STRIPE_WEBHOOK_SECRET") != "",
+			"notificationWorkerMode":  "queue",
+		})
+	})
+
 	controller.RegisterRoutes(e, ctl)
 
 	port := os.Getenv("PORT")

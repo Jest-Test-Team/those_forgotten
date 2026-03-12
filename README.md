@@ -49,6 +49,18 @@ make stack-down
 DATABASE_URL=postgres://... EMAIL=admin@example.com ROLE=admin make grant-role
 ```
 
+## Notifications Worker
+
+```bash
+DATABASE_URL=postgres://... make notify-worker
+```
+
+## Smoke Check
+
+```bash
+API_BASE_URL=https://api.example.com WEB_BASE_URL=https://app.example.com make smoke-check
+```
+
 ## Contracts
 
 ```bash

@@ -67,6 +67,34 @@ func TestHealthzIncludesRepositoryMode(t *testing.T) {
 	}
 }
 
+func TestReadyzIncludesRuntimeFlags(t *testing.T) {
+	t.Setenv("SUPABASE_JWT_SECRET", "jwt-secret")
+	t.Setenv("STRIPE_WEBHOOK_SECRET", "whsec_demo")
+
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+
+	payload := map[string]any{}
+	if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("json.Unmarshal() error = %v", err)
+	}
+
+	if payload["status"] != "ready" {
+		t.Fatalf("expected ready status, got %v", payload["status"])
+	}
+}
+
 func TestIngestAuctionsRequiresToken(t *testing.T) {
 	t.Setenv("INTERNAL_INGEST_TOKEN", "secret")
 

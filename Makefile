@@ -1,6 +1,6 @@
 SHELL := /bin/zsh
 
-.PHONY: bootstrap dev lint test typecheck api-test crawler-test web-test sync-contracts stack-build stack-up stack-web stack-logs stack-down api-dev crawler-dev crawler-post-fixtures grant-role
+.PHONY: bootstrap dev lint test typecheck api-test crawler-test web-test sync-contracts stack-build stack-up stack-web stack-logs stack-down api-dev crawler-dev crawler-post-fixtures grant-role notify-worker smoke-check
 
 bootstrap:
 	corepack pnpm install
@@ -63,3 +63,9 @@ crawler-post-fixtures:
 
 grant-role:
 	cd services/api-go && DATABASE_URL=$${DATABASE_URL:?set DATABASE_URL} go run ./cmd/grant-role --email $${EMAIL:?set EMAIL} --role $${ROLE:-admin} --name "$${NAME:-}"
+
+notify-worker:
+	cd services/api-go && DATABASE_URL=$${DATABASE_URL:?set DATABASE_URL} NOTIFICATION_BATCH_SIZE=$${NOTIFICATION_BATCH_SIZE:-20} go run ./cmd/notify-worker
+
+smoke-check:
+	bash scripts/smoke-check.sh

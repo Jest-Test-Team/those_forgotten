@@ -70,6 +70,8 @@ For this repo, I would not treat free Koyeb as a durable "always-on API plus alw
 - Prefer GitHub Actions cron first for free predictable scheduling
 - Keep Koyeb crawler service only if the schedule/runtime profile still fits free limits
 - Scaffold added: `.github/workflows/crawler-schedule.yml`
+- Add post-deploy smoke verification using `.github/workflows/deploy-smoke.yml` and `scripts/smoke-check.sh`
+- Run `make notify-worker` as the first notification delivery mode until a fully separated long-running worker service is deployed
 
 ### Phase 3
 
