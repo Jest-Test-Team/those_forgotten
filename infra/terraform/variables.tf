@@ -52,7 +52,7 @@ variable "supabase_organization_id" {
 
 variable "supabase_region" {
   type        = string
-  default     = "ap-northeast-1"
+  default     = "ap-south-1"
   description = "Supabase project region."
 }
 

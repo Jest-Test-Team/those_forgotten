@@ -39,6 +39,10 @@ Set these on the Koyeb API service:
 - `STRIPE_CHECKOUT_BASE_URL`
 - `STRIPE_WEBHOOK_SECRET`
 
+For your current Supabase project, `DATABASE_URL` should use the transaction pooler format:
+
+`postgresql://postgres.mluxmwdbjunrqgyuqizn:YOUR_PASSWORD@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require`
+
 ## Why `/readyz`
 
 The API now exposes:

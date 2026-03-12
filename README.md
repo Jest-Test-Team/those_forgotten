@@ -46,13 +46,13 @@ make stack-down
 ## Role Management
 
 ```bash
-DATABASE_URL=postgres://... EMAIL=admin@example.com ROLE=admin make grant-role
+DATABASE_URL=postgresql://postgres.mluxmwdbjunrqgyuqizn:YOUR_PASSWORD@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require EMAIL=admin@example.com ROLE=admin make grant-role
 ```
 
 ## Notifications Worker
 
 ```bash
-DATABASE_URL=postgres://... make notify-worker
+DATABASE_URL=postgresql://postgres.mluxmwdbjunrqgyuqizn:YOUR_PASSWORD@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require make notify-worker
 ```
 
 ## Smoke Check

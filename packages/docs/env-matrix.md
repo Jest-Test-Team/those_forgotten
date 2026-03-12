@@ -51,9 +51,13 @@ Notes:
 Notes:
 
 - `DATABASE_URL` is required for production persistence, admin RBAC bootstrap, notification jobs, and worker processing.
+- For your current Supabase setup, use the transaction pooler URL on port `6543` with `sslmode=require`.
+- Example:
+  `postgresql://postgres.mluxmwdbjunrqgyuqizn:YOUR_PASSWORD@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require`
 - `REDIS_URL` remains the right place for rate limit counters, locks, short-lived cache, and websocket session fan-out.
 - `KAFKA_BROKERS` is the recommended event backbone once crawler ingest and notification fan-out move to durable streaming.
 - `SUPABASE_JWT_SECRET` is required if admin/member API routes should trust Bearer tokens from Supabase.
+- `api-go` now detects Supabase transaction pooler URLs and switches `pgx` to simple protocol for PgBouncer compatibility.
 - If `STRIPE_SECRET_KEY`, price ids, and redirect URLs are present, `POST /v1/stripe/checkout` now creates a live Stripe Checkout Session.
 - `STRIPE_CHECKOUT_BASE_URL` remains as the fallback path when live Stripe credentials are not present.
 - If the three `VAPID_*` variables are present, `make notify-worker` sends real Web Push notifications; otherwise it falls back to simulate mode.

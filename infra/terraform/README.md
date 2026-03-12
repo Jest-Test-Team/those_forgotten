@@ -33,6 +33,12 @@ terraform plan
 - `koyeb_token`
 - `koyeb_org_id`
 
+For the current Supabase project in ap-south-1, `database_url` should use the transaction pooler format on port `6543`:
+
+```bash
+postgresql://postgres.mluxmwdbjunrqgyuqizn:YOUR_PASSWORD@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require
+```
+
 ## Follow-up Before Apply
 
 1. Replace demo env values with real production URLs and secrets.
@@ -41,7 +47,7 @@ terraform plan
 4. After the stack is up, grant the first admin role through the API CLI:
 
 ```bash
-DATABASE_URL=postgres://... EMAIL=admin@example.com ROLE=admin make grant-role
+DATABASE_URL=postgresql://postgres.mluxmwdbjunrqgyuqizn:YOUR_PASSWORD@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require EMAIL=admin@example.com ROLE=admin make grant-role
 ```
 
 `ADMIN_EMAILS` remains in the web deployment as an emergency fallback, but the preferred path is now DB-backed `user_roles`.
