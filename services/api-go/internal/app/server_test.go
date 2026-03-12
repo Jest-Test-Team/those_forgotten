@@ -476,6 +476,44 @@ func TestMemberRoutesRequireAuthentication(t *testing.T) {
 	}
 }
 
+func TestMemberRoutesRejectQueryFallbackWhenJwtSecretConfigured(t *testing.T) {
+	t.Setenv("SUPABASE_JWT_SECRET", "jwt-secret")
+
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/keyword-subscriptions?email=member@example.com", nil)
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
+func TestAdminRoutesRejectHeaderFallbackWhenJwtSecretConfigured(t *testing.T) {
+	t.Setenv("ADMIN_EMAILS", "admin@example.com")
+	t.Setenv("SUPABASE_JWT_SECRET", "jwt-secret")
+
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/admin/community-reports", nil)
+	req.Header.Set("X-Actor-Email", "admin@example.com")
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+}
+
 func TestAdminRoutesAcceptBearerToken(t *testing.T) {
 	t.Setenv("ADMIN_EMAILS", "admin@example.com")
 	t.Setenv("SUPABASE_JWT_SECRET", "jwt-secret")

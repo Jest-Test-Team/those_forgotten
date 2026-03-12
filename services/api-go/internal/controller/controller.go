@@ -138,8 +138,19 @@ func (ctl *Controller) actorEmail(c echo.Context) string {
 	return strings.ToLower(strings.TrimSpace(c.QueryParam("email")))
 }
 
+func (ctl *Controller) protectedActorEmail(c echo.Context) string {
+	if len(ctl.jwtSecret) > 0 {
+		if bearerEmail, ok := ctl.actorEmailFromBearer(c); ok {
+			return bearerEmail
+		}
+		return ""
+	}
+
+	return ctl.actorEmail(c)
+}
+
 func (ctl *Controller) requireAdmin(c echo.Context) error {
-	context := ctl.service.GetAuthContext(ctl.actorEmail(c))
+	context := ctl.service.GetAuthContext(ctl.protectedActorEmail(c))
 	if context.Role != "admin" {
 		return c.JSON(http.StatusForbidden, map[string]any{"error": "admin role required"})
 	}
@@ -148,7 +159,7 @@ func (ctl *Controller) requireAdmin(c echo.Context) error {
 }
 
 func (ctl *Controller) requireMember(c echo.Context) (model.AuthContext, error) {
-	context := ctl.service.GetAuthContext(ctl.actorEmail(c))
+	context := ctl.service.GetAuthContext(ctl.protectedActorEmail(c))
 	if context.Role == "guest" {
 		return context, c.JSON(http.StatusUnauthorized, map[string]any{"error": "authenticated member required"})
 	}

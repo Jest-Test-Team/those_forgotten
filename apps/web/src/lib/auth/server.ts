@@ -31,7 +31,8 @@ async function getApiAuthContext(email: string, accessToken: string | null) {
       headers.Authorization = `Bearer ${accessToken}`;
     }
 
-    const response = await fetch(`${getApiBaseUrl()}/v1/auth/context?email=${encodeURIComponent(email)}`, {
+    const path = accessToken ? "/v1/auth/context" : `/v1/auth/context?email=${encodeURIComponent(email)}`;
+    const response = await fetch(`${getApiBaseUrl()}${path}`, {
       headers,
       cache: "no-store",
     });
