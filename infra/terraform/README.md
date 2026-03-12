@@ -37,3 +37,10 @@ terraform plan
 1. Replace demo env values with real production URLs and secrets.
 2. Publish API and crawler images or switch Koyeb resources to repo-based deploy settings.
 3. Confirm the exact Koyeb provider version and schema before first apply.
+4. After the stack is up, grant the first admin role through the API CLI:
+
+```bash
+DATABASE_URL=postgres://... EMAIL=admin@example.com ROLE=admin make grant-role
+```
+
+`ADMIN_EMAILS` remains in the web deployment as an emergency fallback, but the preferred path is now DB-backed `user_roles`.

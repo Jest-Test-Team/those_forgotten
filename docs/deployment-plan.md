@@ -54,12 +54,13 @@ For this repo, I would not treat free Koyeb as a durable "always-on API plus alw
 ### Phase 1
 
 - Deploy `apps/web` to Vercel Hobby
-- Set `ADMIN_EMAILS` on the web deployment so `/admin` can enforce the SSR allowlist
+- Set `ADMIN_EMAILS` on the web deployment only as a temporary/fallback admin gate
 - Create Supabase project and wire:
   - Auth
   - Postgres
   - Storage
 - Deploy `services/api-go` to Koyeb Starter
+- Run `make grant-role` against the production database to create the first DB-backed admin role
 - Keep crawler fixture/manual in dev until API + DB env is stable
 
 ### Phase 2
