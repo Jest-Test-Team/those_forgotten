@@ -64,6 +64,12 @@ make stack-prod-logs
 DATABASE_URL=postgresql://postgres.mluxmwdbjunrqgyuqizn:YOUR_PASSWORD@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require EMAIL=admin@example.com ROLE=admin make grant-role
 ```
 
+## Seed Demo Data
+
+```bash
+DATABASE_URL=postgresql://postgres.mluxmwdbjunrqgyuqizn:YOUR_PASSWORD@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require make seed-db
+```
+
 ## Notifications Worker
 
 ```bash
@@ -84,6 +90,11 @@ make sync-contracts
 
 This copies `packages/contracts/openapi.yaml` to `services/api-go/docs/swagger.yaml`.
 
+Swagger UI for API testing is exposed by `api-go` at:
+
+- `/swagger`
+- `/swagger.yaml`
+
 ## Deployment
 
 - Deployment assessment and rollout plan: `packages/docs/deployment-plan.md`
@@ -92,6 +103,7 @@ This copies `packages/contracts/openapi.yaml` to `services/api-go/docs/swagger.y
 - Environment matrix: `packages/docs/env-matrix.md`
 - Backend evolution guide: `packages/docs/backend-evolution.md`
 - Hosted secrets checklist: `packages/docs/secrets-checklist.md`
+- Swagger testing guide: `packages/docs/swagger-testing.md`
 - Terraform scaffold: `infra/terraform`
 
 

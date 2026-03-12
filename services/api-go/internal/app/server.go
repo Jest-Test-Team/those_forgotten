@@ -2,8 +2,10 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/dennislee928/those_forgotten/services/api-go/internal/controller"
@@ -64,7 +66,22 @@ func NewServer() (*Server, error) {
 			"repository": repositoryMode,
 			"healthz":    "/healthz",
 			"readyz":     "/readyz",
+			"swagger":    "/swagger",
 		})
+	})
+
+	e.GET("/swagger.yaml", func(c echo.Context) error {
+		for _, candidate := range swaggerCandidates() {
+			if _, err := os.Stat(candidate); err == nil {
+				return c.File(candidate)
+			}
+		}
+
+		return c.JSON(http.StatusNotFound, map[string]any{"error": "swagger spec not found"})
+	})
+
+	e.GET("/swagger", func(c echo.Context) error {
+		return c.HTML(http.StatusOK, swaggerHTML())
 	})
 
 	e.GET("/readyz", func(c echo.Context) error {
@@ -111,4 +128,39 @@ func (s *Server) Start() error {
 
 func (s *Server) Echo() *echo.Echo {
 	return s.echo
+}
+
+func swaggerCandidates() []string {
+	executable, _ := os.Executable()
+
+	return []string{
+		strings.TrimSpace(os.Getenv("SWAGGER_PATH")),
+		"docs/swagger.yaml",
+		filepath.Join(filepath.Dir(executable), "docs", "swagger.yaml"),
+		filepath.Join("services", "api-go", "docs", "swagger.yaml"),
+	}
+}
+
+func swaggerHTML() string {
+	return fmt.Sprintf(`<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Customs Auction Platform Swagger</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script>
+      window.ui = SwaggerUIBundle({
+        url: "/swagger.yaml",
+        dom_id: "#swagger-ui",
+        deepLinking: true,
+        presets: [SwaggerUIBundle.presets.apis]
+      });
+    </script>
+  </body>
+</html>`)
 }

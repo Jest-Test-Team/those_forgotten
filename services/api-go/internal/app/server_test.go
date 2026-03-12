@@ -111,6 +111,26 @@ func TestRootRouteReturnsServiceMetadata(t *testing.T) {
 	}
 }
 
+func TestSwaggerRouteReturnsHTML(t *testing.T) {
+	server, err := NewServer()
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/swagger", nil)
+	rec := httptest.NewRecorder()
+
+	server.Echo().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("ServeHTTP() code = %d", rec.Code)
+	}
+
+	if !bytes.Contains(rec.Body.Bytes(), []byte("SwaggerUIBundle")) {
+		t.Fatalf("expected swagger ui html")
+	}
+}
+
 func TestIngestAuctionsRequiresToken(t *testing.T) {
 	t.Setenv("INTERNAL_INGEST_TOKEN", "secret")
 

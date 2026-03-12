@@ -90,11 +90,12 @@ func (p *PostgresRepository) ListAuctions() []model.AuctionLot {
 	defer cancel()
 
 	rows, err := p.pool.Query(ctx, `
-		SELECT id::text, title, COALESCE(category, ''), COALESCE(closing_at, NOW())::text,
-		       COALESCE(viewing_at, NOW())::text, COALESCE(original_link, ''), office,
-		       ARRAY['現狀交付','不負瑕疵擔保']
-		FROM auction_lots
-		ORDER BY closing_at NULLS LAST, created_at DESC
+		SELECT al.id::text, al.title, COALESCE(al.category, ''), COALESCE(al.closing_at, NOW())::text,
+		       COALESCE(al.viewing_at, NOW())::text, COALESCE(aa.original_link, ''), aa.office,
+		       COALESCE(NULLIF(al.disclaimers, '{}'), ARRAY['現狀交付','不負瑕疵擔保'])
+		FROM auction_lots al
+		JOIN auction_announcements aa ON aa.id = al.announcement_id
+		ORDER BY al.closing_at NULLS LAST, al.created_at DESC
 		LIMIT 20
 	`)
 	if err != nil {
@@ -134,11 +135,12 @@ func (p *PostgresRepository) GetAuction(id string) (model.AuctionLot, bool) {
 
 	var auction model.AuctionLot
 	err := p.pool.QueryRow(ctx, `
-		SELECT id::text, title, COALESCE(category, ''), COALESCE(closing_at, NOW())::text,
-		       COALESCE(viewing_at, NOW())::text, COALESCE(original_link, ''), office,
-		       ARRAY['現狀交付','不負瑕疵擔保']
-		FROM auction_lots
-		WHERE id = $1::uuid
+		SELECT al.id::text, al.title, COALESCE(al.category, ''), COALESCE(al.closing_at, NOW())::text,
+		       COALESCE(al.viewing_at, NOW())::text, COALESCE(aa.original_link, ''), aa.office,
+		       COALESCE(NULLIF(al.disclaimers, '{}'), ARRAY['現狀交付','不負瑕疵擔保'])
+		FROM auction_lots al
+		JOIN auction_announcements aa ON aa.id = al.announcement_id
+		WHERE al.id = $1::uuid
 	`, id).Scan(
 		&auction.ID,
 		&auction.Title,
