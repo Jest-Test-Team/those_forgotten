@@ -38,6 +38,9 @@ Notes:
 - `STRIPE_CANCEL_URL`
 - `STRIPE_MEMBERSHIP_PRICE_ID`
 - `STRIPE_COURSE_PRICE_ID`
+- `VAPID_PUBLIC_KEY`
+- `VAPID_PRIVATE_KEY`
+- `VAPID_SUBJECT`
 
 Notes:
 
@@ -45,6 +48,7 @@ Notes:
 - `SUPABASE_JWT_SECRET` is required if admin/member API routes should trust Bearer tokens from Supabase.
 - If `STRIPE_SECRET_KEY`, price ids, and redirect URLs are present, `POST /v1/stripe/checkout` now creates a live Stripe Checkout Session.
 - `STRIPE_CHECKOUT_BASE_URL` remains as the fallback path when live Stripe credentials are not present.
+- If the three `VAPID_*` variables are present, `make notify-worker` sends real Web Push notifications; otherwise it falls back to simulate mode.
 
 ## `services/crawler`
 
