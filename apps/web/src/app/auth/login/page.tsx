@@ -1,5 +1,7 @@
 import { AuthStatus } from "@/components/auth-status";
 import { Shell } from "@/components/shell";
+import { SupabaseEnvHint } from "@/components/supabase-env-hint";
+import { getSupabaseConfigStatus } from "@/lib/supabase/config";
 
 export const metadata = {
   title: "登入",
@@ -15,6 +17,7 @@ type Props = {
 export default async function LoginPage({ searchParams }: Props) {
   const params = (await searchParams) ?? {};
   const nextPath = params.next || "/member";
+  const supabaseStatus = getSupabaseConfigStatus();
 
   return (
     <Shell>
@@ -27,6 +30,11 @@ export default async function LoginPage({ searchParams }: Props) {
         </p>
         {params.error ? (
           <p className="mt-4 text-sm text-rose-700">登入流程失敗：{params.error}</p>
+        ) : null}
+        {!supabaseStatus.enabled ? (
+          <div className="mt-6">
+            <SupabaseEnvHint />
+          </div>
         ) : null}
         <div className="mt-8 rounded-[1.5rem] border border-black/8 bg-white/60 p-6">
           <AuthStatus nextPath={nextPath} />

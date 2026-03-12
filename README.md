@@ -133,6 +133,7 @@ Swagger UI for API testing is exposed by `api-go` at:
 - Environment matrix: `packages/docs/env-matrix.md`
 - Backend evolution guide: `packages/docs/backend-evolution.md`
 - Hosted secrets checklist: `packages/docs/secrets-checklist.md`
+- Vercel env verification checklist: `packages/docs/vercel-env-verification.md`
 - Swagger testing guide: `packages/docs/swagger-testing.md`
 - Database bootstrap guide: `packages/docs/database-bootstrap.md`
 - Terraform scaffold: `infra/terraform`

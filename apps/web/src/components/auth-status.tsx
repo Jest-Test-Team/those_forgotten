@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseEnvHint } from "@/components/supabase-env-hint";
 
 type AuthState = {
   email: string | null;
@@ -106,9 +106,7 @@ export function AuthStatus({ nextPath = "/member" }: Props) {
 
   if (!authState.enabled) {
     return (
-      <Link href="/auth/login" className="rounded-full border border-black/10 px-4 py-2 text-sm">
-        設定登入
-      </Link>
+      <SupabaseEnvHint compact />
     );
   }
 

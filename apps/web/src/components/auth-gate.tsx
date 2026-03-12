@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ReactNode, useEffect, useState } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
+import { SupabaseEnvHint } from "@/components/supabase-env-hint";
 
 type Props = {
   children: ReactNode;
@@ -73,6 +74,9 @@ export function AuthGate({ children, title, description }: Props) {
         <p className="mt-4 text-base leading-8 text-[color:var(--muted)]">
           目前缺少 Supabase URL 或 anon key，請先完成 web 環境設定。
         </p>
+        <div className="mt-6">
+          <SupabaseEnvHint />
+        </div>
       </section>
     );
   }
