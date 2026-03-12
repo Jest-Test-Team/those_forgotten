@@ -25,6 +25,28 @@ services:
       timeout: 5s
       retries: 10
 
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v25.1.4
+    profiles: ["streaming"]
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp=1
+      - --memory=512M
+      - --reserve-memory=0M
+      - --node-id=0
+      - --check=false
+      - --kafka-addr=PLAINTEXT://0.0.0.0:9092,OUTSIDE://0.0.0.0:19092
+      - --advertise-kafka-addr=PLAINTEXT://redpanda:9092,OUTSIDE://localhost:19092
+    ports:
+      - "19092:19092"
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster info --brokers=127.0.0.1:9092 >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   api:
     build:
       context: .
@@ -35,6 +57,7 @@ services:
       INTERNAL_INGEST_TOKEN: demo-token
       DATABASE_URL: postgres://customs:customs@postgres:5432/customs?sslmode=disable
       REDIS_URL: redis://redis:6379
+      KAFKA_BROKERS: redpanda:9092
     ports:
       - "8080:8080"
     depends_on:

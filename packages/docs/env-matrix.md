@@ -29,6 +29,7 @@ Notes:
 - `WEB_ORIGIN`
 - `DATABASE_URL`
 - `REDIS_URL`
+- `KAFKA_BROKERS`
 - `INTERNAL_INGEST_TOKEN`
 - `SUPABASE_JWT_SECRET`
 - `STRIPE_CHECKOUT_BASE_URL`
@@ -41,10 +42,17 @@ Notes:
 - `VAPID_PUBLIC_KEY`
 - `VAPID_PRIVATE_KEY`
 - `VAPID_SUBJECT`
+- `GRPC_PORT`
+- `WS_ALLOWED_ORIGINS`
+- `CSRF_TRUSTED_ORIGINS`
+- `TRUSTED_PROXY_CIDRS`
+- `RATE_LIMIT_RPS`
 
 Notes:
 
 - `DATABASE_URL` is required for production persistence, admin RBAC bootstrap, notification jobs, and worker processing.
+- `REDIS_URL` remains the right place for rate limit counters, locks, short-lived cache, and websocket session fan-out.
+- `KAFKA_BROKERS` is the recommended event backbone once crawler ingest and notification fan-out move to durable streaming.
 - `SUPABASE_JWT_SECRET` is required if admin/member API routes should trust Bearer tokens from Supabase.
 - If `STRIPE_SECRET_KEY`, price ids, and redirect URLs are present, `POST /v1/stripe/checkout` now creates a live Stripe Checkout Session.
 - `STRIPE_CHECKOUT_BASE_URL` remains as the fallback path when live Stripe credentials are not present.
