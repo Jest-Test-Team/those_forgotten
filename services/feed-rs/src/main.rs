@@ -10,6 +10,13 @@ use platform::{RenderCalendarRequest, RenderCalendarResponse};
 #[derive(Default)]
 struct FeedGrpc;
 
+fn escape_text(s: &str) -> String {
+    s.replace('\\', "\\\\")
+     .replace(';', "\\;")
+     .replace(',', "\\,")
+     .replace('\n', "\\n")
+}
+
 #[tonic::async_trait]
 impl FeedService for FeedGrpc {
     async fn render_calendar(
@@ -30,8 +37,8 @@ impl FeedService for FeedGrpc {
         for lot in payload.lots {
             lines.push("BEGIN:VEVENT".to_string());
             lines.push(format!("UID:{}@those-forgotten", lot.auction_lot_id));
-            lines.push(format!("SUMMARY:{} {}", lot.office, lot.title));
-            lines.push(format!("DESCRIPTION:官方連結 {}", lot.official_url));
+            lines.push(format!("SUMMARY:{}", escape_text(&format!("{} {}", lot.office, lot.title))));
+            lines.push(format!("DESCRIPTION:{}", escape_text(&format!("官方連結 {}", lot.official_url))));
             lines.push("END:VEVENT".to_string());
         }
 

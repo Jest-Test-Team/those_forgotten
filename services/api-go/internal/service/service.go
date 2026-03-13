@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 	"time"
@@ -65,19 +66,26 @@ func (s *PlatformService) GetAuctionHistory(id string) []model.AuctionResult {
 }
 
 func (s *PlatformService) CalendarFeed() string {
-	return strings.Join([]string{
+	auctions := s.repo.ListAuctions()
+
+	lines := []string{
 		"BEGIN:VCALENDAR",
 		"VERSION:2.0",
 		"PRODID:-//Customs Auction Platform//EN",
-		"BEGIN:VEVENT",
-		"UID:lot-camera-001@customs-auction-platform",
-		"SUMMARY:臺北關 沒入數位相機與鏡頭一批",
-		"DTSTART:20260314T020000Z",
-		"DTEND:20260314T030000Z",
-		"DESCRIPTION:現狀交付，不負瑕疵擔保。",
-		"END:VEVENT",
-		"END:VCALENDAR",
-	}, "\r\n")
+	}
+
+	for _, lot := range auctions {
+		lines = append(lines, "BEGIN:VEVENT")
+		lines = append(lines, fmt.Sprintf("UID:%s@customs-auction-platform", lot.ID))
+		lines = append(lines, fmt.Sprintf("SUMMARY:%s %s", lot.Office, lot.Title))
+		// Assuming ClosingAt is a time.Time, format it to iCal UTC format
+		// lines = append(lines, fmt.Sprintf("DTSTART:%s", lot.ClosingAt.UTC().Format("20060102T150405Z")))
+		lines = append(lines, "DESCRIPTION:請至平台查看詳細資訊")
+		lines = append(lines, "END:VEVENT")
+	}
+
+	lines = append(lines, "END:VCALENDAR")
+	return strings.Join(lines, "\r\n")
 }
 
 func (s *PlatformService) ListKeywordSubscriptions() []model.KeywordSubscription {
