@@ -39,6 +39,7 @@
     "source-map-js": "^1.2.2",
     "zod": "^4.6.6",
     "@humanfs/node": "^0.16.8",
-    "baseline-browser-mapping": "^2.11.0"
+    "baseline-browser-mapping": "^2.11.0",
+    "@babel/core": "^7.29.6"
   }
 }
